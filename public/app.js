@@ -15,8 +15,8 @@ function app() {
         
         // 表单数据
         loginForm: {
-            username: '',
-            password: ''
+            username: 'demo',
+            password: 'demodemo'
         },
         registerForm: {
             username: '',
