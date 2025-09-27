@@ -540,7 +540,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);">
                                                 <div class="flex space-x-2">
                                                     <span x-show="log.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff8c00; color: #000000;">迫降</span>
-                                                    <span x-show="log.airCrash" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff4444; color: #ffffff;">空雾</span>
+                                                    <span x-show="log.airCrash" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff4444; color: #ffffff;">空难</span>
                                                     <span x-show="!log.forcedLanding && !log.airCrash" style="color: var(--text-secondary);">-</span>
                                                 </div>
                                             </td>
@@ -870,7 +870,7 @@
                             <label class="flex items-start space-x-2">
                                 <input x-model="flightForm.airCrash" type="checkbox" class="mt-1">
                                 <div>
-                                    <span class="text-sm font-medium" style="color: var(--text-primary);">空雾</span>
+                                    <span class="text-sm font-medium" style="color: var(--text-primary);">空难</span>
                                     <p class="text-xs" style="color: var(--text-secondary);">剧情或画面雷到让人瞬间熄火</p>
                                 </div>
                             </label>
@@ -1003,7 +1003,7 @@
                                 <p x-show="log.cabinPressure"><strong>舱压:</strong> <span x-text="log.cabinPressure"></span></p>
                                 <div x-show="log.forcedLanding || log.airCrash" class="flex space-x-2">
                                     <span x-show="log.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff8c00; color: #000000;">迫降</span>
-                                    <span x-show="log.airCrash" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff4444; color: #ffffff;">空雾</span>
+                                    <span x-show="log.airCrash" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff4444; color: #ffffff;">空难</span>
                                 </div>
                                 <p x-show="log.remarks" class="mt-2"><strong>备注:</strong> <span x-text="log.remarks"></span></p>
                             </div>
@@ -1056,7 +1056,7 @@
                             <label class="block text-sm font-medium" style="color: var(--text-secondary);">事件</label>
                             <div class="mt-1 flex space-x-2">
                                 <span x-show="selectedLog && selectedLog.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff8c00; color: #000000;">迫降</span>
-                                <span x-show="selectedLog && selectedLog.airCrash" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff4444; color: #ffffff;">空雾</span>
+                                <span x-show="selectedLog && selectedLog.airCrash" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff4444; color: #ffffff;">空难</span>
                                 <span x-show="selectedLog && !selectedLog.forcedLanding && !selectedLog.airCrash" style="color: var(--text-secondary);">-</span>
                             </div>
                         </div>
