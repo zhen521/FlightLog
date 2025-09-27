@@ -1,0 +1,72 @@
+[
+  {
+    "startTime": 1672502400000,
+    "endTime": 1672503600000,
+    "duration": 1200,
+    "flightNumber": "TMA-052",
+    "fuelConsumption": 2,
+    "forcedLanding": false,
+    "airCrash": false,
+    "flightAttendant": "Julia",
+    "copilot": "",
+    "hangar": "Local Drive D",
+    "cabinPressure": "高潮",
+    "remarks": "A classic one."
+  },
+  {
+    "startTime": 1672588800000,
+    "endTime": 1672589700000,
+    "duration": 900,
+    "flightNumber": "TMA-065",
+    "fuelConsumption": 1,
+    "forcedLanding": true,
+    "airCrash": false,
+    "flightAttendant": "Sarah",
+    "copilot": "",
+    "hangar": "Cloud Storage",
+    "cabinPressure": "一般",
+    "remarks": "Interrupted by a phone call."
+  },
+  {
+    "startTime": 1672675200000,
+    "endTime": 1672677300000,
+    "duration": 2100,
+    "flightNumber": "TMA-088",
+    "fuelConsumption": 3,
+    "forcedLanding": false,
+    "airCrash": false,
+    "flightAttendant": "Emma",
+    "copilot": "Alex",
+    "hangar": "External HDD",
+    "cabinPressure": "极致高潮",
+    "remarks": "Excellent flight experience."
+  },
+  {
+    "startTime": 1672761600000,
+    "endTime": 1672762200000,
+    "duration": 600,
+    "flightNumber": "TMA-101",
+    "fuelConsumption": 1,
+    "forcedLanding": false,
+    "airCrash": true,
+    "flightAttendant": "Lisa",
+    "copilot": "",
+    "hangar": "USB Drive",
+    "cabinPressure": "低气压",
+    "remarks": "Technical difficulties encountered."
+  },
+  {
+    "startTime": 1672848000000,
+    "endTime": 1672850400000,
+    "duration": 2400,
+    "flightNumber": "TMA-125",
+    "fuelConsumption": 4,
+    "forcedLanding": false,
+    "airCrash": false,
+    "flightAttendant": "Monica",
+    "copilot": "David",
+    "hangar": "Network Storage",
+    "cabinPressure": "超级高潮",
+    "remarks": "Perfect conditions, great performance."
+  }
+]

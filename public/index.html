@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>机长飞行日志</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        /* 自定义滚动条 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans">
+    <div x-data="app()" x-init="init()" class="min-h-screen">
+        
+        <!-- 登录注册页面 -->
+        <div x-show="!isLoggedIn" x-cloak class="min-h-screen flex items-center justify-center">
+            <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">机长飞行日志</h1>
+                    <p class="text-gray-600">Captain's Flight Log</p>
+                </div>
+                
+                <!-- 登录表单 -->
+                <div x-show="!showRegister">
+                    <h2 class="text-xl font-semibold mb-6 text-center">登录</h2>
+                    <form @submit.prevent="login">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">用户名</label>
+                            <input x-model="loginForm.username" type="text" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">密码</label>
+                            <input x-model="loginForm.password" type="password" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required>
+                        </div>
+                        <button type="submit" 
+                            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+                            :disabled="loading">
+                            <span x-show="!loading">登录</span>
+                            <span x-show="loading">登录中...</span>
+                        </button>
+                    </form>
+                    <div class="mt-4 text-center">
+                        <button @click="showRegister = true" class="text-blue-500 hover:text-blue-600">立即注册</button>
+                    </div>
+                </div>
+                
+                <!-- 注册表单 -->
+                <div x-show="showRegister">
+                    <h2 class="text-xl font-semibold mb-6 text-center">注册</h2>
+                    <form @submit.prevent="register">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">用户名</label>
+                            <input x-model="registerForm.username" type="text" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">密码</label>
+                            <input x-model="registerForm.password" type="password" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">邀请码</label>
+                            <input x-model="registerForm.inviteCode" type="text" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="请输入邀请码" required>
+                        </div>
+                        <button type="submit" 
+                            class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+                            :disabled="loading">
+                            <span x-show="!loading">注册</span>
+                            <span x-show="loading">注册中...</span>
+                        </button>
+                    </form>
+                    <div class="mt-4 text-center">
+                        <button @click="showRegister = false" class="text-blue-500 hover:text-blue-600">返回登录</button>
+                    </div>
+                </div>
+                
+                <!-- 错误消息 -->
+                <div x-show="errorMessage" x-cloak class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    <span x-text="errorMessage"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 主应用界面 -->
+        <div x-show="isLoggedIn" x-cloak class="flex h-screen">
+            
+            <!-- 侧边栏 -->
+            <div class="w-64 bg-white shadow-lg">
+                <div class="p-6 border-b">
+                    <h1 class="text-xl font-bold text-gray-800">机长飞行日志</h1>
+                    <p class="text-sm text-gray-600" x-text="'欢迎, ' + user.username"></p>
+                </div>
+                
+                <nav class="mt-6">
+                    <a @click.prevent="switchView('dashboard')" href="#" 
+                        class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200"
+                        :class="currentView === 'dashboard' ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : ''">
+                        <i class="inline-block w-5 h-5 mr-3">📊</i>
+                        主页面
+                    </a>
+                    <a @click.prevent="switchView('calendar')" href="#" 
+                        class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200"
+                        :class="currentView === 'calendar' ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : ''">
+                        <i class="inline-block w-5 h-5 mr-3">📅</i>
+                        日历视图
+                    </a>
+                    <a @click.prevent="switchView('table')" href="#" 
+                        class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200"
+                        :class="currentView === 'table' ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : ''">
+                        <i class="inline-block w-5 h-5 mr-3">📋</i>
+                        表格视图
+                    </a>
+                    <a @click.prevent="switchView('leaderboard')" href="#" 
+                        class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200"
+                        :class="currentView === 'leaderboard' ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : ''">
+                        <i class="inline-block w-5 h-5 mr-3">🏆</i>
+                        排行榜
+                    </a>
+                    <a @click.prevent="switchView('data')" href="#" 
+                        class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200"
+                        :class="currentView === 'data' ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : ''">
+                        <i class="inline-block w-5 h-5 mr-3">💾</i>
+                        数据管理
+                    </a>
+                </nav>
+                
+                <div class="absolute bottom-0 w-64 p-6 border-t">
+                    <button @click="logout" 
+                        class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                        登出
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 主内容区 -->
+            <div class="flex-1 overflow-auto custom-scrollbar">
+                
+                <!-- 主页面 -->
+                <div x-show="currentView === 'dashboard'" class="p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-8">飞行控制中心</h2>
+                    
+                    <!-- 飞行操作区 -->
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                        <h3 class="text-lg font-semibold mb-4">飞行操作</h3>
+                        <div class="flex space-x-4">
+                            <button @click="takeoff" 
+                                :disabled="isFlying || loading"
+                                class="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
+                                :class="isFlying ? 'animate-pulse' : ''">
+                                <span x-show="!isFlying">🛫 起飞</span>
+                                <span x-show="isFlying">✈️ 飞行中...</span>
+                            </button>
+                            <button @click="landing" 
+                                :disabled="!isFlying || loading"
+                                class="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                                🛬 降落
+                            </button>
+                        </div>
+                        <div x-show="isFlying" class="mt-4 text-sm text-gray-600">
+                            飞行时间: <span x-text="formatDuration(flightDuration)"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- 统计面板 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                        ✈️
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">总飞行次数</p>
+                                    <p class="text-2xl font-semibold text-gray-900" x-text="stats.totalFlights || 0"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                        ⏱️
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">平均飞行时间</p>
+                                    <p class="text-2xl font-semibold text-gray-900" x-text="formatDuration(stats.avgDuration || 0)"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                        📅
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">本周飞行</p>
+                                    <p class="text-2xl font-semibold text-gray-900" x-text="stats.weekFlights || 0"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                        📊
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">本月飞行</p>
+                                    <p class="text-2xl font-semibold text-gray-900" x-text="stats.monthFlights || 0"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 图表区域 -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold mb-4">最近30天飞行频率</h3>
+                        <div class="relative h-80 w-full">
+                            <!-- Canvas元素 -->
+                            <canvas id="dailyChart" class="w-full h-full"></canvas>
+                            <!-- 加载状态指示器 -->
+                            <div x-show="!dailyChart || loading" class="absolute inset-0 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded">
+                                <div class="text-center">
+                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                                    <p class="text-gray-500 text-sm">正在加载图表...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 日历视图 -->
+                <div x-show="currentView === 'calendar'" class="p-8">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800">日历视图</h2>
+                        <div class="flex items-center space-x-4">
+                            <button @click="previousMonth" class="p-2 text-gray-600 hover:text-blue-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                            <h3 class="text-lg font-semibold" x-text="getMonthYear()"></h3>
+                            <button @click="nextMonth" class="p-2 text-gray-600 hover:text-blue-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 日历网格 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <!-- 星期表头 -->
+                        <div class="grid grid-cols-7 bg-gray-50">
+                            <div class="p-4 text-center text-sm font-medium text-gray-500">周一</div>
+                            <div class="p-4 text-center text-sm font-medium text-gray-500">周二</div>
+                            <div class="p-4 text-center text-sm font-medium text-gray-500">周三</div>
+                            <div class="p-4 text-center text-sm font-medium text-gray-500">周四</div>
+                            <div class="p-4 text-center text-sm font-medium text-gray-500">周五</div>
+                            <div class="p-4 text-center text-sm font-medium text-gray-500">周六</div>
+                            <div class="p-4 text-center text-sm font-medium text-gray-500">周日</div>
+                        </div>
+                        
+                        <!-- 日期网格 -->
+                        <div class="grid grid-cols-7">
+                            <template x-for="day in calendarDays" :key="day.dateStr">
+                                <div class="min-h-[100px] border-b border-r border-gray-200 p-2 relative cursor-pointer hover:bg-gray-50"
+                                     :class="{
+                                         'bg-slate-200': day.flightCount === 0 && day.isCurrentMonth,
+                                         'bg-blue-200': day.flightCount === 1,
+                                         'bg-blue-500 text-white': day.flightCount >= 2,
+                                         'text-gray-400': !day.isCurrentMonth
+                                     }"
+                                     @click="showDayDetails(day)">
+                                    <div class="text-sm font-medium" x-text="day.date"></div>
+                                    <div x-show="day.flightCount > 0" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs" x-text="day.flightCount"></div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 表格视图 -->
+                <div x-show="currentView === 'table'" class="p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-8">表格视图</h2>
+                    
+                    <!-- 表格 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">航班号</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">起飞时间</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">飞行时长</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">燃料消耗</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">空姐</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">事件</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <template x-for="(log, index) in flightLogs" :key="log.id">
+                                        <tr class="hover:bg-gray-50" 
+                                            :class="index === 0 ? 'bg-blue-50 border-l-4 border-blue-500' : ''">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="log.flightNumber || '-'"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="formatDateTime(log.startTime)"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="formatDuration(log.duration)"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="log.fuelConsumption || 0"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="log.flightAttendant || '-'"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <div class="flex space-x-2">
+                                                    <span x-show="log.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">迫降</span>
+                                                    <span x-show="log.airCrash" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">空雾</span>
+                                                    <span x-show="!log.forcedLanding && !log.airCrash" class="text-gray-500">-</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button @click="viewLogDetails(log)" class="text-blue-600 hover:text-blue-900 mr-3">查看详情</button>
+                                                <button @click="editLogDetails(log)" class="text-green-600 hover:text-green-900">
+                                                    <span x-show="index === 0 && (!log.flightNumber && !log.flightAttendant && !log.remarks)" class="font-semibold">补充详情</span>
+                                                    <span x-show="!(index === 0 && (!log.flightNumber && !log.flightAttendant && !log.remarks))">编辑详情</span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="flightLogs.length === 0">
+                                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">暂无飞行记录</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 分页 -->
+                        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                            <div class="flex-1 flex justify-between sm:hidden">
+                                <button @click="loadPreviousPage" :disabled="currentPage <= 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">上一页</button>
+                                <button @click="loadNextPage" :disabled="!hasMorePages" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">下一页</button>
+                            </div>
+                            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-700">
+                                        第 <span class="font-medium" x-text="currentPage"></span> 页
+                                    </p>
+                                </div>
+                                <div>
+                                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                        <button @click="loadPreviousPage" :disabled="currentPage <= 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">上一页</button>
+                                        <button @click="loadNextPage" :disabled="!hasMorePages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">下一页</button>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 排行榜 -->
+                <div x-show="currentView === 'leaderboard'" class="p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-8">排行榜</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- 单次飞行时长排行榜 -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                🏆 单次飞行时长 Top 10
+                            </h3>
+                            <div class="space-y-3">
+                                <template x-for="(log, index) in topDurationLogs" :key="log.id">
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
+                                                 :class="{
+                                                     'bg-yellow-500': index === 0,
+                                                     'bg-gray-400': index === 1,
+                                                     'bg-orange-500': index === 2,
+                                                     'bg-blue-500': index > 2
+                                                 }"
+                                                 x-text="index + 1">
+                                            </div>
+                                            <div>
+                                                <p class="font-medium" x-text="log.flightNumber || '无航班号'"></p>
+                                                <p class="text-sm text-gray-500" x-text="formatDateTime(log.startTime)"></p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-bold text-blue-600" x-text="formatDuration(log.duration)"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div x-show="topDurationLogs.length === 0" class="text-center text-gray-500 py-8">
+                                    暂无数据
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 燃料消耗排行榜 -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                ⛽ 燃料消耗排行榜 Top 10
+                            </h3>
+                            <div class="space-y-3">
+                                <template x-for="(log, index) in topFuelLogs" :key="log.id">
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
+                                                 :class="{
+                                                     'bg-yellow-500': index === 0,
+                                                     'bg-gray-400': index === 1,
+                                                     'bg-orange-500': index === 2,
+                                                     'bg-blue-500': index > 2
+                                                 }"
+                                                 x-text="index + 1">
+                                            </div>
+                                            <div>
+                                                <p class="font-medium" x-text="log.flightNumber || '无航班号'"></p>
+                                                <p class="text-sm text-gray-500" x-text="formatDateTime(log.startTime)"></p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-bold text-green-600" x-text="log.fuelConsumption"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div x-show="topFuelLogs.length === 0" class="text-center text-gray-500 py-8">
+                                    暂无数据
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 单次飞行时长PK榜 -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                🔥 单次飞行时长PK榜
+                            </h3>
+                            <div class="space-y-3">
+                                <template x-for="(user, index) in maxDurationLeaderboard" :key="user.username">
+                                    <div class="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
+                                                 :class="{
+                                                     'bg-gradient-to-r from-yellow-400 to-yellow-600': index === 0,
+                                                     'bg-gradient-to-r from-gray-300 to-gray-500': index === 1,
+                                                     'bg-gradient-to-r from-orange-400 to-red-500': index === 2,
+                                                     'bg-gradient-to-r from-purple-400 to-pink-500': index > 2
+                                                 }"
+                                                 x-text="index + 1">
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-purple-800" x-text="user.username"></p>
+                                                <p class="text-sm text-gray-600" x-text="user.flightNumber || '无航班号'"></p>
+                                                <p class="text-xs text-gray-500" x-text="user.flightAttendant ? '空姐: ' + user.flightAttendant : ''"></p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-bold text-purple-600 text-lg" x-text="formatDuration(user.maxDuration)"></p>
+                                            <p class="text-xs text-gray-500" x-text="formatDateTime(user.startTime)"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div x-show="maxDurationLeaderboard.length === 0" class="text-center text-gray-500 py-8">
+                                    暂无PK数据
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 月度统计 -->
+                    <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            📅 月度飞行统计
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                <p class="text-2xl font-bold text-blue-600" x-text="stats.monthFlights || 0"></p>
+                                <p class="text-sm text-gray-600">本月飞行次数</p>
+                            </div>
+                            <div class="text-center p-4 bg-green-50 rounded-lg">
+                                <p class="text-2xl font-bold text-green-600" x-text="formatDuration(monthlyStats.totalDuration || 0)"></p>
+                                <p class="text-sm text-gray-600">本月总时长</p>
+                            </div>
+                            <div class="text-center p-4 bg-purple-50 rounded-lg">
+                                <p class="text-2xl font-bold text-purple-600" x-text="formatDuration(monthlyStats.avgDuration || 0)"></p>
+                                <p class="text-sm text-gray-600">本月平均时长</p>
+                            </div>
+                            <div class="text-center p-4 bg-orange-50 rounded-lg">
+                                <p class="text-2xl font-bold text-orange-600" x-text="monthlyStats.maxDuration ? formatDuration(monthlyStats.maxDuration) : '0秒'"></p>
+                                <p class="text-sm text-gray-600">本月最长单次</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 数据管理 -->
+                <div x-show="currentView === 'data'" class="p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-8">数据管理</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- 导出数据 -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-semibold mb-4">导出数据</h3>
+                            <p class="text-gray-600 mb-4">将您的飞行记录导出为文件保存到本地。</p>
+                            <div class="space-y-3">
+                                <button @click="exportJSON" :disabled="loading" 
+                                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-200 disabled:opacity-50">
+                                    📋 导出为 JSON 格式
+                                </button>
+                                <button @click="exportCSV" :disabled="loading"
+                                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition duration-200 disabled:opacity-50">
+                                    📈 导出为 CSV 格式
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 导入数据 -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-semibold mb-4">导入数据</h3>
+                            <div class="bg-orange-50 border border-orange-200 rounded-md p-4 mb-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium text-orange-800">注意</h4>
+                                        <p class="text-sm text-orange-700">导入数据将会<strong>覆盖</strong>您现有的所有飞行记录，请谨慎操作。</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">选择 JSON 文件</label>
+                                    <input type="file" @change="handleFileSelect" accept=".json" 
+                                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                </div>
+                                <button @click="importData" :disabled="!selectedFile || loading"
+                                    class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-200 disabled:opacity-50">
+                                    📎 导入数据（覆盖模式）
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 飞行详情模态框 -->
+        <div x-show="showFlightModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                <h3 class="text-lg font-semibold mb-4">
+                    <span x-show="!selectedLog">补充飞行详情</span>
+                    <span x-show="selectedLog">编辑飞行详情</span>
+                </h3>
+                <form @submit.prevent="saveFlightLog">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">航班号</label>
+                            <input x-model="flightForm.flightNumber" type="text" 
+                                placeholder="AV 番号或者网址或者小黄油"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">AV 番号或者网址或者小黄油</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">燃料消耗</label>
+                            <div class="space-y-2">
+                                <!-- 预设选项 -->
+                                <div class="flex space-x-2">
+                                    <button type="button" @click="flightForm.fuelConsumption = 1" 
+                                        :class="flightForm.fuelConsumption === 1 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'"
+                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">1级</button>
+                                    <button type="button" @click="flightForm.fuelConsumption = 2" 
+                                        :class="flightForm.fuelConsumption === 2 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'"
+                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">2级</button>
+                                    <button type="button" @click="flightForm.fuelConsumption = 3" 
+                                        :class="flightForm.fuelConsumption === 3 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'"
+                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">3级</button>
+                                </div>
+                                <!-- 自定义输入 -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600">自定义:</label>
+                                    <input x-model.number="flightForm.fuelConsumption" type="number" min="0" max="100"
+                                        placeholder="输入数值"
+                                        class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">选择1-3级预设或自定义发射次数</p>
+                        </div>
+                        
+                        <div class="flex items-start space-x-6">
+                            <label class="flex items-start space-x-2">
+                                <input x-model="flightForm.forcedLanding" type="checkbox" class="mt-1">
+                                <div>
+                                    <span class="text-sm text-gray-700 font-medium">迫降</span>
+                                    <p class="text-xs text-gray-500">中途因为突发事情突然中断软掉</p>
+                                </div>
+                            </label>
+                            <label class="flex items-start space-x-2">
+                                <input x-model="flightForm.airCrash" type="checkbox" class="mt-1">
+                                <div>
+                                    <span class="text-sm text-gray-700 font-medium">空雾</span>
+                                    <p class="text-xs text-gray-500">剧情或画面雷到让人瞬间熄火</p>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">空姐</label>
+                            <input x-model="flightForm.flightAttendant" type="text" 
+                                placeholder="AV女优或者伴侣"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">AV女优或者伴侣</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">副机长</label>
+                            <input x-model="flightForm.copilot" type="text" 
+                                placeholder="陪你一起起飞的人"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">陪你一起起飞的人</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">机库</label>
+                            <input x-model="flightForm.hangar" type="text" 
+                                placeholder="存放AV、小黄油、种子的硬盘或网盘"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">存放AV、小黄油、种子的硬盘或网盘</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">舱压</label>
+                            <div class="space-y-2">
+                                <!-- 预设选项 -->
+                                <div class="flex space-x-2">
+                                    <button type="button" @click="flightForm.cabinPressure = '1'" 
+                                        :class="flightForm.cabinPressure === '1' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'"
+                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">1级</button>
+                                    <button type="button" @click="flightForm.cabinPressure = '2'" 
+                                        :class="flightForm.cabinPressure === '2' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'"
+                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">2级</button>
+                                    <button type="button" @click="flightForm.cabinPressure = '3'" 
+                                        :class="flightForm.cabinPressure === '3' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'"
+                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">3级</button>
+                                    <button type="button" @click="flightForm.cabinPressure = '4'" 
+                                        :class="flightForm.cabinPressure === '4' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'"
+                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">4级</button>
+                                    <button type="button" @click="flightForm.cabinPressure = '5'" 
+                                        :class="flightForm.cabinPressure === '5' ? 'bg-red-600 text-white font-bold' : 'bg-gray-200 text-gray-700'"
+                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">🔥 5级</button>
+                                </div>
+                                <!-- 自定义输入 -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600">自定义:</label>
+                                    <input x-model="flightForm.cabinPressure" type="text" 
+                                        placeholder="自定义描述"
+                                        class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">选择1-5级预设或自定义高潮程度（5级最高）</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+                            <textarea x-model="flightForm.remarks" rows="3"
+                                placeholder="记录额外信息或特殊情况..."
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"></textarea>
+                            <p class="text-xs text-gray-500 mt-1">记录额外信息或特殊情况</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3 mt-6">
+                        <button type="submit" 
+                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+                            :disabled="loading">
+                            <span x-show="!selectedLog">保存</span>
+                            <span x-show="selectedLog">更新详情</span>
+                        </button>
+                        <button type="button" @click="cancelFlightLog"
+                            class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                            取消
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 日历日期详情模态框 -->
+        <div x-show="showDayModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold" x-text="selectedDay ? selectedDay.dateStr + ' 飞行记录' : ''"></h3>
+                    <button @click="showDayModal = false" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <template x-for="log in dayLogs" :key="log.id">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-medium" x-text="log.flightNumber || '无航班号'"></h4>
+                                <span class="text-sm text-gray-500" x-text="formatTime(log.startTime) + ' - ' + formatTime(log.endTime)"></span>
+                            </div>
+                            <div class="text-sm text-gray-600 space-y-1">
+                                <p><strong>飞行时长:</strong> <span x-text="formatDuration(log.duration)"></span></p>
+                                <p x-show="log.flightAttendant"><strong>空姐:</strong> <span x-text="log.flightAttendant"></span></p>
+                                <p x-show="log.fuelConsumption > 0"><strong>燃料消耗:</strong> <span x-text="log.fuelConsumption"></span></p>
+                                <p x-show="log.cabinPressure"><strong>舱压:</strong> <span x-text="log.cabinPressure"></span></p>
+                                <div x-show="log.forcedLanding || log.airCrash" class="flex space-x-2">
+                                    <span x-show="log.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">迫降</span>
+                                    <span x-show="log.airCrash" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">空雾</span>
+                                </div>
+                                <p x-show="log.remarks" class="mt-2"><strong>备注:</strong> <span x-text="log.remarks"></span></p>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="dayLogs.length === 0" class="text-center text-gray-500 py-8">
+                        该日期没有飞行记录
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 飞行记录详情模态框 -->
+        <div x-show="showLogModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">飞行记录详情</h3>
+                    <div class="flex items-center space-x-2">
+                        <button @click="editLogDetails(selectedLog)" class="text-green-600 hover:text-green-900 text-sm">编辑详情</button>
+                        <button @click="showLogModal = false" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div x-show="selectedLog" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">航班号</label>
+                            <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? (selectedLog.flightNumber || '-') : ''"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">燃料消耗</label>
+                            <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? (selectedLog.fuelConsumption || 0) : ''"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">起飞时间</label>
+                            <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? formatDateTime(selectedLog.startTime) : ''"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">降落时间</label>
+                            <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? formatDateTime(selectedLog.endTime) : ''"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">飞行时长</label>
+                            <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? formatDuration(selectedLog.duration) : ''"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">事件</label>
+                            <div class="mt-1 flex space-x-2">
+                                <span x-show="selectedLog && selectedLog.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">迫降</span>
+                                <span x-show="selectedLog && selectedLog.airCrash" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">空难</span>
+                                <span x-show="selectedLog && !selectedLog.forcedLanding && !selectedLog.airCrash" class="text-gray-500">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div x-show="selectedLog && selectedLog.flightAttendant">
+                        <label class="block text-sm font-medium text-gray-500">空姐</label>
+                        <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? selectedLog.flightAttendant : ''"></p>
+                    </div>
+                    <div x-show="selectedLog && selectedLog.copilot">
+                        <label class="block text-sm font-medium text-gray-500">副机长</label>
+                        <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? selectedLog.copilot : ''"></p>
+                    </div>
+                    <div x-show="selectedLog && selectedLog.hangar">
+                        <label class="block text-sm font-medium text-gray-500">机库</label>
+                        <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? selectedLog.hangar : ''"></p>
+                    </div>
+                    <div x-show="selectedLog && selectedLog.cabinPressure">
+                        <label class="block text-sm font-medium text-gray-500">舱压</label>
+                        <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? selectedLog.cabinPressure : ''"></p>
+                    </div>
+                    <div x-show="selectedLog && selectedLog.remarks">
+                        <label class="block text-sm font-medium text-gray-500">备注</label>
+                        <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? selectedLog.remarks : ''"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 通知消息 -->
+        <div x-show="notification.show" x-cloak
+            class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 transform translate-x-full"
+            x-transition:enter-end="opacity-100 transform translate-x-0">
+            <span x-text="notification.message"></span>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
