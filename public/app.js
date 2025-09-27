@@ -71,13 +71,50 @@ function app() {
         // 图表实例
         dailyChart: null,
         
+        // 主题相关
+        currentTheme: 'light',
+        
         // 初始化
         async init() {
+            // 初始化主题
+            this.initTheme();
+            
             await this.checkAuthStatus();
             if (this.isLoggedIn) {
                 console.log('用户已登录，开始加载初始数据');
                 // 加载所有视图的数据
                 await this.loadAllViewsData();
+            }
+        },
+        
+        // 初始化主题
+        initTheme() {
+            const savedTheme = localStorage.getItem('flightlog-theme') || 'light';
+            this.currentTheme = savedTheme;
+            this.applyTheme(savedTheme);
+        },
+        
+        // 切换主题
+        toggleTheme() {
+            const newTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+            this.currentTheme = newTheme;
+            this.applyTheme(newTheme);
+            localStorage.setItem('flightlog-theme', newTheme);
+            
+            // 如果有图表，重新绘制以适应主题
+            if (this.dailyChart && this.currentView === 'dashboard') {
+                setTimeout(() => {
+                    this.loadDailyChart();
+                }, 100);
+            }
+        },
+        
+        // 应用主题
+        applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
             }
         },
         
@@ -533,6 +570,7 @@ function app() {
                     console.log('图表数据:', data);
                     
                     // 创建图表配置
+                    const isDark = this.currentTheme === 'dark';
                     const config = {
                         type: 'line',
                         data: {
@@ -540,20 +578,22 @@ function app() {
                             datasets: [{
                                 label: '每日飞行次数',
                                 data: data,
-                                borderColor: 'rgb(59, 130, 246)',
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderColor: isDark ? '#ffd65c' : 'rgb(59, 130, 246)',
+                                backgroundColor: isDark ? 'rgba(255, 214, 92, 0.1)' : 'rgba(59, 130, 246, 0.1)',
                                 borderWidth: 2,
                                 fill: true,
                                 tension: 0.4,
                                 pointRadius: 3,
-                                pointHoverRadius: 5
+                                pointHoverRadius: 5,
+                                pointBackgroundColor: isDark ? '#ffea00' : 'rgb(59, 130, 246)',
+                                pointBorderColor: isDark ? '#ffd65c' : 'rgb(59, 130, 246)'
                             }]
                         },
                         options: {
-                            responsive: false, // 禁用响应式，避免DOM计算问题
+                            responsive: false,
                             maintainAspectRatio: false,
                             animation: {
-                                duration: 0 // 禁用动画，避免渲染问题
+                                duration: 0
                             },
                             interaction: {
                                 intersect: false,
@@ -563,11 +603,21 @@ function app() {
                                 y: {
                                     beginAtZero: true,
                                     ticks: {
-                                        stepSize: 1
+                                        stepSize: 1,
+                                        color: isDark ? '#eeeeee' : '#6b7280'
+                                    },
+                                    grid: {
+                                        color: isDark ? '#333333' : '#e5e7eb'
                                     }
                                 },
                                 x: {
-                                    display: true
+                                    display: true,
+                                    ticks: {
+                                        color: isDark ? '#eeeeee' : '#6b7280'
+                                    },
+                                    grid: {
+                                        color: isDark ? '#333333' : '#e5e7eb'
+                                    }
                                 }
                             },
                             plugins: {
@@ -575,7 +625,12 @@ function app() {
                                     display: false
                                 },
                                 tooltip: {
-                                    enabled: true
+                                    enabled: true,
+                                    backgroundColor: isDark ? '#333333' : '#ffffff',
+                                    titleColor: isDark ? '#eeeeee' : '#1f2937',
+                                    bodyColor: isDark ? '#eeeeee' : '#1f2937',
+                                    borderColor: isDark ? '#ffd65c' : '#e5e7eb',
+                                    borderWidth: 1
                                 }
                             }
                         }

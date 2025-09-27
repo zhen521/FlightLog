@@ -17,97 +17,245 @@
     <style>
         [x-cloak] { display: none !important; }
         
+        /* CSS变量定义 - 默认亮色主题 */
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-accent: #3b82f6;
+            --border-color: #e5e7eb;
+            --input-bg: #ffffff;
+            --input-focus-bg: #ffffff;
+            --input-focus-border: #3b82f6;
+            --button-primary: #3b82f6;
+            --button-primary-hover: #2563eb;
+            --button-text: #ffffff;
+            --chart-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        /* CRT雷达版暗黑主题 - 按照用户提供的完整颜色规范 */
+        [data-theme="dark"] {
+            --bg-primary: #1e1e1e;        /* 主背景 - 几乎纯黑 */
+            --bg-secondary: #222222;      /* 图表背景 - 深石墨色 */
+            --bg-tertiary: #333333;       /* 控件背景 */
+            --text-primary: #eeeeee;      /* 主文字 */
+            --text-secondary: #eeeeee;    /* 次要文字 */
+            --text-accent: #ffd65c;       /* 高亮/亮黄/琥珀黄 - CRT扫描曲线 */
+            --border-color: #333333;      /* 表格行分隔线 */
+            --input-bg: #222222;          /* 输入框背景 */
+            --input-focus-bg: #333333;    /* 输入框获得焦点时的背景 */
+            --input-focus-border: #ffea00; /* 更刺眼的黄 - 交互焦点 */
+            --button-primary: #ffd65c;    /* 主按钮颜色 */
+            --button-primary-hover: #ffea00; /* 主按钮悬停颜色 */
+            --button-text: #000000;       /* 按钮内部文字 */
+            --chart-bg: #000000;          /* 图表背景 - 纯黑，让黄线条更亮 */
+            --shadow-color: rgba(255, 214, 92, 0.2); /* 阴影也用黄色调 */
+        }
+        
+        /* 应用CSS变量到全局样式 */
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
         /* 自定义滚动条 */
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: var(--bg-tertiary);
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
+            background: var(--border-color);
+            border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            background: var(--text-accent);
+        }
+        
+        /* 主题切换按钮样式 */
+        .theme-toggle {
+            background: var(--button-primary);
+            color: var(--button-text);
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+        
+        .theme-toggle:hover {
+            background: var(--button-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+        
+        /* 统一圆角 */
+        .rounded-theme {
+            border-radius: 4px;
+        }
+        
+        /* CRT扫描线效果（仅暗色主题） */
+        [data-theme="dark"] .crt-effect {
+            position: relative;
+        }
+        
+        [data-theme="dark"] .crt-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                transparent 98%,
+                rgba(255, 214, 92, 0.05) 100%
+            );
+            background-size: 3px 100%;
+            pointer-events: none;
+            z-index: 1;
+            border-radius: 4px;
+        }
+        
+        /* 更强的CRT边框辉光效果 */
+        [data-theme="dark"] .crt-effect::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 214, 92, 0.1) 50%, transparent 70%);
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* 文件输入框的主题适配 */
+        input[type="file"] {
+            color: var(--text-primary) !important;
+        }
+        
+        [data-theme="dark"] input[type="file"]::-webkit-file-upload-button {
+            background-color: var(--button-primary);
+            color: var(--button-text);
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        [data-theme="dark"] input[type="file"]::-webkit-file-upload-button:hover {
+            background-color: var(--button-primary-hover);
         }
     </style>
 </head>
-<body class="bg-slate-50 font-sans">
+<body class="font-sans" style="background-color: var(--bg-primary);">
     <div x-data="app()" x-init="init()" class="min-h-screen">
         
         <!-- 登录注册页面 -->
         <div x-show="!isLoggedIn" x-cloak class="min-h-screen flex items-center justify-center">
-            <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+            <div class="p-8 rounded-theme shadow-lg w-full max-w-md crt-effect" style="background-color: var(--bg-secondary);">
                 <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold text-gray-800 mb-2">机长飞行日志</h1>
-                    <p class="text-gray-600">Captain's Flight Log</p>
+                    <h1 class="text-3xl font-bold mb-2" style="color: var(--text-primary);">机长飞行日志</h1>
+                    <p style="color: var(--text-secondary);">Captain's Flight Log</p>
                 </div>
                 
                 <!-- 登录表单 -->
                 <div x-show="!showRegister">
-                    <h2 class="text-xl font-semibold mb-6 text-center">登录</h2>
+                    <h2 class="text-xl font-semibold mb-6 text-center" style="color: var(--text-primary);">登录</h2>
                     <form @submit.prevent="login">
                         <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">用户名</label>
+                            <label class="block text-sm font-bold mb-2" style="color: var(--text-primary);">用户名</label>
                             <input x-model="loginForm.username" type="text" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-3 py-2 rounded-theme transition duration-200"
+                                style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';"
                                 required>
                         </div>
                         <div class="mb-6">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">密码</label>
+                            <label class="block text-sm font-bold mb-2" style="color: var(--text-primary);">密码</label>
                             <input x-model="loginForm.password" type="password" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-3 py-2 rounded-theme transition duration-200"
+                                style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';"
                                 required>
                         </div>
                         <button type="submit" 
-                            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+                            class="w-full font-bold py-2 px-4 rounded-theme transition duration-200"
+                            style="background-color: var(--button-primary); color: var(--button-text);"
+                            onmouseover="this.style.backgroundColor='var(--button-primary-hover)'"
+                            onmouseout="this.style.backgroundColor='var(--button-primary)'"
                             :disabled="loading">
                             <span x-show="!loading">登录</span>
                             <span x-show="loading">登录中...</span>
                         </button>
                     </form>
                     <div class="mt-4 text-center">
-                        <button @click="showRegister = true" class="text-blue-500 hover:text-blue-600">立即注册</button>
+                        <button @click="showRegister = true" class="transition duration-200" style="color: var(--text-accent);" onmouseover="this.style.color='var(--button-primary-hover)'" onmouseout="this.style.color='var(--text-accent)'">立即注册</button>
                     </div>
                 </div>
                 
                 <!-- 注册表单 -->
                 <div x-show="showRegister">
-                    <h2 class="text-xl font-semibold mb-6 text-center">注册</h2>
+                    <h2 class="text-xl font-semibold mb-6 text-center" style="color: var(--text-primary);">注册</h2>
                     <form @submit.prevent="register">
                         <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">用户名</label>
+                            <label class="block text-sm font-bold mb-2" style="color: var(--text-primary);">用户名</label>
                             <input x-model="registerForm.username" type="text" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-3 py-2 rounded-theme transition duration-200"
+                                style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';"
                                 required>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">密码</label>
+                            <label class="block text-sm font-bold mb-2" style="color: var(--text-primary);">密码</label>
                             <input x-model="registerForm.password" type="password" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-3 py-2 rounded-theme transition duration-200"
+                                style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';"
                                 required>
                         </div>
                         <div class="mb-6">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">邀请码</label>
+                            <label class="block text-sm font-bold mb-2" style="color: var(--text-primary);">邀请码</label>
                             <input x-model="registerForm.inviteCode" type="text" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-3 py-2 rounded-theme transition duration-200"
+                                style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';"
                                 placeholder="请输入邀请码" required>
                         </div>
                         <button type="submit" 
-                            class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+                            class="w-full font-bold py-2 px-4 rounded-theme transition duration-200"
+                            style="background-color: #10b981; color: white;"
+                            onmouseover="this.style.backgroundColor='#059669'"
+                            onmouseout="this.style.backgroundColor='#10b981'"
                             :disabled="loading">
                             <span x-show="!loading">注册</span>
                             <span x-show="loading">注册中...</span>
                         </button>
                     </form>
                     <div class="mt-4 text-center">
-                        <button @click="showRegister = false" class="text-blue-500 hover:text-blue-600">返回登录</button>
+                        <button @click="showRegister = false" class="transition duration-200" style="color: var(--text-accent);" onmouseover="this.style.color='var(--button-primary-hover)'" onmouseout="this.style.color='var(--text-accent)'">返回登录</button>
                     </div>
                 </div>
                 
                 <!-- 错误消息 -->
-                <div x-show="errorMessage" x-cloak class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                <div x-show="errorMessage" x-cloak class="mt-4 p-3 rounded-theme" style="background-color: #fee2e2; border: 1px solid #fecaca; color: #991b1b;">
                     <span x-text="errorMessage"></span>
                 </div>
             </div>
@@ -116,49 +264,65 @@
         <!-- 主应用界面 -->
         <div x-show="isLoggedIn" x-cloak class="flex h-screen">
             
+            <!-- 主题切换按钮 -->
+            <div class="fixed top-4 right-4 z-50">
+                <button @click="toggleTheme()" class="theme-toggle">
+                    <span x-show="currentTheme === 'light'">🌙 暗色</span>
+                    <span x-show="currentTheme === 'dark'">☀️ 亮色</span>
+                </button>
+            </div>
+            
             <!-- 侧边栏 -->
-            <div class="w-64 bg-white shadow-lg">
-                <div class="p-6 border-b">
-                    <h1 class="text-xl font-bold text-gray-800">机长飞行日志</h1>
-                    <p class="text-sm text-gray-600" x-text="'欢迎, ' + user.username"></p>
+            <div class="w-64 shadow-lg" style="background-color: var(--bg-secondary);">
+                <div class="p-6" style="border-bottom: 1px solid var(--border-color);">
+                    <h1 class="text-xl font-bold" style="color: var(--text-primary);">机长飞行日志</h1>
+                    <p class="text-sm" style="color: var(--text-secondary);" x-text="'欢迎, ' + user.username"></p>
                 </div>
                 
                 <nav class="mt-6">
                     <a @click.prevent="switchView('dashboard')" href="#" 
-                        class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200"
-                        :class="currentView === 'dashboard' ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : ''">
+                        class="block px-6 py-3 transition duration-200 rounded-theme"
+                        style="color: var(--text-primary);"
+                        :style="currentView === 'dashboard' ? 'background-color: var(--bg-tertiary); color: var(--text-accent); border-right: 2px solid var(--text-accent);' : 'color: var(--text-primary);'">
                         <i class="inline-block w-5 h-5 mr-3">📊</i>
                         主页面
                     </a>
                     <a @click.prevent="switchView('calendar')" href="#" 
-                        class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200"
-                        :class="currentView === 'calendar' ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : ''">
+                        class="block px-6 py-3 transition duration-200 rounded-theme"
+                        style="color: var(--text-primary);"
+                        :style="currentView === 'calendar' ? 'background-color: var(--bg-tertiary); color: var(--text-accent); border-right: 2px solid var(--text-accent);' : 'color: var(--text-primary);'">
                         <i class="inline-block w-5 h-5 mr-3">📅</i>
                         日历视图
                     </a>
                     <a @click.prevent="switchView('table')" href="#" 
-                        class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200"
-                        :class="currentView === 'table' ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : ''">
+                        class="block px-6 py-3 transition duration-200 rounded-theme"
+                        style="color: var(--text-primary);"
+                        :style="currentView === 'table' ? 'background-color: var(--bg-tertiary); color: var(--text-accent); border-right: 2px solid var(--text-accent);' : 'color: var(--text-primary);'">
                         <i class="inline-block w-5 h-5 mr-3">📋</i>
                         表格视图
                     </a>
                     <a @click.prevent="switchView('leaderboard')" href="#" 
-                        class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200"
-                        :class="currentView === 'leaderboard' ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : ''">
+                        class="block px-6 py-3 transition duration-200 rounded-theme"
+                        style="color: var(--text-primary);"
+                        :style="currentView === 'leaderboard' ? 'background-color: var(--bg-tertiary); color: var(--text-accent); border-right: 2px solid var(--text-accent);' : 'color: var(--text-primary);'">
                         <i class="inline-block w-5 h-5 mr-3">🏆</i>
                         排行榜
                     </a>
                     <a @click.prevent="switchView('data')" href="#" 
-                        class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200"
-                        :class="currentView === 'data' ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : ''">
+                        class="block px-6 py-3 transition duration-200 rounded-theme"
+                        style="color: var(--text-primary);"
+                        :style="currentView === 'data' ? 'background-color: var(--bg-tertiary); color: var(--text-accent); border-right: 2px solid var(--text-accent);' : 'color: var(--text-primary);'">
                         <i class="inline-block w-5 h-5 mr-3">💾</i>
                         数据管理
                     </a>
                 </nav>
                 
-                <div class="absolute bottom-0 w-64 p-6 border-t">
+                <div class="absolute bottom-0 w-64 p-6" style="border-top: 1px solid var(--border-color);">
                     <button @click="logout" 
-                        class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                        class="w-full font-bold py-2 px-4 rounded-theme transition duration-200"
+                        style="background-color: #dc2626; color: white;"
+                        onmouseover="this.style.backgroundColor='#b91c1c'" 
+                        onmouseout="this.style.backgroundColor='#dc2626'">
                         登出
                     </button>
                 </div>
@@ -169,100 +333,108 @@
                 
                 <!-- 主页面 -->
                 <div x-show="currentView === 'dashboard'" class="p-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-8">飞行控制中心</h2>
+                    <h2 class="text-2xl font-bold mb-8" style="color: var(--text-primary);">飞行控制中心</h2>
                     
                     <!-- 飞行操作区 -->
-                    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-                        <h3 class="text-lg font-semibold mb-4">飞行操作</h3>
+                    <div class="rounded-theme shadow-md p-6 mb-8 crt-effect" style="background-color: var(--bg-secondary);">
+                        <h3 class="text-lg font-semibold mb-4" style="color: var(--text-primary);">飞行操作</h3>
                         <div class="flex space-x-4">
                             <button @click="takeoff" 
                                 :disabled="isFlying || loading"
-                                class="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
-                                :class="isFlying ? 'animate-pulse' : ''">
+                                class="font-bold py-3 px-6 rounded-theme transition duration-200"
+                                style="background-color: #10b981; color: white;"
+                                :style="isFlying ? 'animation: pulse 2s infinite;' : ''"
+                                onmouseover="if(!this.disabled) this.style.backgroundColor='#059669'" 
+                                onmouseout="if(!this.disabled) this.style.backgroundColor='#10b981'"
+                                :class="loading ? 'opacity-50 cursor-not-allowed' : ''">
                                 <span x-show="!isFlying">🛫 起飞</span>
                                 <span x-show="isFlying">✈️ 飞行中...</span>
                             </button>
                             <button @click="landing" 
                                 :disabled="!isFlying || loading"
-                                class="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                                class="font-bold py-3 px-6 rounded-theme transition duration-200"
+                                style="background-color: #ef4444; color: white;"
+                                onmouseover="if(!this.disabled) this.style.backgroundColor='#dc2626'" 
+                                onmouseout="if(!this.disabled) this.style.backgroundColor='#ef4444'"
+                                :class="(!isFlying || loading) ? 'opacity-50 cursor-not-allowed' : ''">
                                 🛬 降落
                             </button>
                         </div>
-                        <div x-show="isFlying" class="mt-4 text-sm text-gray-600">
-                            飞行时间: <span x-text="formatDuration(flightDuration)"></span>
+                        <div x-show="isFlying" class="mt-4 text-sm" style="color: var(--text-secondary);">
+                            飞行时间: <span x-text="formatDuration(flightDuration)" style="color: var(--text-accent); font-weight: bold;"></span>
                         </div>
                     </div>
                     
                     <!-- 统计面板 -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="rounded-theme shadow-md p-6 crt-effect" style="background-color: var(--bg-secondary);">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background-color: var(--bg-tertiary); color: var(--text-accent);">
                                         ✈️
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500">总飞行次数</p>
-                                    <p class="text-2xl font-semibold text-gray-900" x-text="stats.totalFlights || 0"></p>
+                                    <p class="text-sm font-medium" style="color: var(--text-secondary);">总飞行次数</p>
+                                    <p class="text-2xl font-semibold" style="color: var(--text-primary);" x-text="stats.totalFlights || 0"></p>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="rounded-theme shadow-md p-6 crt-effect" style="background-color: var(--bg-secondary);">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background-color: var(--bg-tertiary); color: var(--text-accent);">
                                         ⏱️
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500">平均飞行时间</p>
-                                    <p class="text-2xl font-semibold text-gray-900" x-text="formatDuration(stats.avgDuration || 0)"></p>
+                                    <p class="text-sm font-medium" style="color: var(--text-secondary);">平均飞行时间</p>
+                                    <p class="text-2xl font-semibold" style="color: var(--text-primary);" x-text="formatDuration(stats.avgDuration || 0)"></p>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="rounded-theme shadow-md p-6 crt-effect" style="background-color: var(--bg-secondary);">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background-color: var(--bg-tertiary); color: var(--text-accent);">
                                         📅
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500">本周飞行</p>
-                                    <p class="text-2xl font-semibold text-gray-900" x-text="stats.weekFlights || 0"></p>
+                                    <p class="text-sm font-medium" style="color: var(--text-secondary);">本周飞行</p>
+                                    <p class="text-2xl font-semibold" style="color: var(--text-primary);" x-text="stats.weekFlights || 0"></p>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="rounded-theme shadow-md p-6 crt-effect" style="background-color: var(--bg-secondary);">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background-color: var(--bg-tertiary); color: var(--text-accent);">
                                         📊
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500">本月飞行</p>
-                                    <p class="text-2xl font-semibold text-gray-900" x-text="stats.monthFlights || 0"></p>
+                                    <p class="text-sm font-medium" style="color: var(--text-secondary);">本月飞行</p>
+                                    <p class="text-2xl font-semibold" style="color: var(--text-primary);" x-text="stats.monthFlights || 0"></p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- 图表区域 -->
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h3 class="text-lg font-semibold mb-4">最近30天飞行频率</h3>
+                    <div class="rounded-theme shadow-md p-6 crt-effect" style="background-color: var(--bg-secondary);">
+                        <h3 class="text-lg font-semibold mb-4" style="color: var(--text-primary);">最近30天飞行频率</h3>
                         <div class="relative h-80 w-full">
                             <!-- Canvas元素 -->
-                            <canvas id="dailyChart" class="w-full h-full"></canvas>
+                            <canvas id="dailyChart" class="w-full h-full rounded-theme" style="background-color: var(--chart-bg);"></canvas>
                             <!-- 加载状态指示器 -->
-                            <div x-show="!dailyChart || loading" class="absolute inset-0 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded">
+                            <div x-show="!dailyChart || loading" class="absolute inset-0 flex items-center justify-center rounded-theme" style="background-color: var(--bg-tertiary); border: 2px dashed var(--border-color);">
                                 <div class="text-center">
-                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                                    <p class="text-gray-500 text-sm">正在加载图表...</p>
+                                    <div class="animate-spin rounded-full h-8 w-8 mx-auto mb-2" style="border: 2px solid var(--text-accent); border-top: 2px solid transparent;"></div>
+                                    <p class="text-sm" style="color: var(--text-secondary);">正在加载图表...</p>
                                 </div>
                             </div>
                         </div>
@@ -272,15 +444,21 @@
                 <!-- 日历视图 -->
                 <div x-show="currentView === 'calendar'" class="p-8">
                     <div class="flex justify-between items-center mb-8">
-                        <h2 class="text-2xl font-bold text-gray-800">日历视图</h2>
+                        <h2 class="text-2xl font-bold" style="color: var(--text-primary);">日历视图</h2>
                         <div class="flex items-center space-x-4">
-                            <button @click="previousMonth" class="p-2 text-gray-600 hover:text-blue-600">
+                            <button @click="previousMonth" class="p-2 rounded-theme transition duration-200" 
+                                style="color: var(--text-secondary); border: 1px solid var(--border-color);" 
+                                onmouseover="this.style.color='var(--text-accent)'" 
+                                onmouseout="this.style.color='var(--text-secondary)'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                                 </svg>
                             </button>
-                            <h3 class="text-lg font-semibold" x-text="getMonthYear()"></h3>
-                            <button @click="nextMonth" class="p-2 text-gray-600 hover:text-blue-600">
+                            <h3 class="text-lg font-semibold" style="color: var(--text-primary);" x-text="getMonthYear()"></h3>
+                            <button @click="nextMonth" class="p-2 rounded-theme transition duration-200" 
+                                style="color: var(--text-secondary); border: 1px solid var(--border-color);" 
+                                onmouseover="this.style.color='var(--text-accent)'" 
+                                onmouseout="this.style.color='var(--text-secondary)'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
@@ -289,31 +467,40 @@
                     </div>
                     
                     <!-- 日历网格 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="rounded-theme shadow-md overflow-hidden crt-effect" style="background-color: var(--bg-secondary);">
                         <!-- 星期表头 -->
-                        <div class="grid grid-cols-7 bg-gray-50">
-                            <div class="p-4 text-center text-sm font-medium text-gray-500">周一</div>
-                            <div class="p-4 text-center text-sm font-medium text-gray-500">周二</div>
-                            <div class="p-4 text-center text-sm font-medium text-gray-500">周三</div>
-                            <div class="p-4 text-center text-sm font-medium text-gray-500">周四</div>
-                            <div class="p-4 text-center text-sm font-medium text-gray-500">周五</div>
-                            <div class="p-4 text-center text-sm font-medium text-gray-500">周六</div>
-                            <div class="p-4 text-center text-sm font-medium text-gray-500">周日</div>
+                        <div class="grid grid-cols-7" style="background-color: var(--bg-tertiary);">
+                            <div class="p-4 text-center text-sm font-medium" style="color: var(--text-secondary);">周一</div>
+                            <div class="p-4 text-center text-sm font-medium" style="color: var(--text-secondary);">周二</div>
+                            <div class="p-4 text-center text-sm font-medium" style="color: var(--text-secondary);">周三</div>
+                            <div class="p-4 text-center text-sm font-medium" style="color: var(--text-secondary);">周四</div>
+                            <div class="p-4 text-center text-sm font-medium" style="color: var(--text-secondary);">周五</div>
+                            <div class="p-4 text-center text-sm font-medium" style="color: var(--text-secondary);">周六</div>
+                            <div class="p-4 text-center text-sm font-medium" style="color: var(--text-secondary);">周日</div>
                         </div>
                         
                         <!-- 日期网格 -->
                         <div class="grid grid-cols-7">
                             <template x-for="day in calendarDays" :key="day.dateStr">
-                                <div class="min-h-[100px] border-b border-r border-gray-200 p-2 relative cursor-pointer hover:bg-gray-50"
-                                     :class="{
-                                         'bg-slate-200': day.flightCount === 0 && day.isCurrentMonth,
-                                         'bg-blue-200': day.flightCount === 1,
-                                         'bg-blue-500 text-white': day.flightCount >= 2,
-                                         'text-gray-400': !day.isCurrentMonth
+                                <div class="min-h-[100px] p-2 relative cursor-pointer transition duration-200"
+                                     style="border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color);"
+                                     :style="{
+                                         'background-color': day.flightCount === 0 && day.isCurrentMonth ? 'var(--bg-primary)' : 
+                                                           day.flightCount === 1 ? 'rgba(255, 214, 92, 0.2)' : 
+                                                           day.flightCount >= 2 ? 'rgba(255, 214, 92, 0.4)' : 'var(--bg-tertiary)',
+                                         'color': day.flightCount >= 2 ? 'var(--button-text)' : 
+                                                day.isCurrentMonth ? 'var(--text-primary)' : 'var(--text-secondary)'
                                      }"
-                                     @click="showDayDetails(day)">
+                                     @click="showDayDetails(day)"
+                                     @mouseover="$el.style.backgroundColor = 'var(--bg-tertiary)'"
+                                     @mouseout="$el.style.backgroundColor = day.flightCount === 0 && day.isCurrentMonth ? 'var(--bg-primary)' : 
+                                                                              day.flightCount === 1 ? 'rgba(255, 214, 92, 0.2)' : 
+                                                                              day.flightCount >= 2 ? 'rgba(255, 214, 92, 0.4)' : 'var(--bg-tertiary)'">
                                     <div class="text-sm font-medium" x-text="day.date"></div>
-                                    <div x-show="day.flightCount > 0" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs" x-text="day.flightCount"></div>
+                                    <div x-show="day.flightCount > 0" 
+                                         class="absolute top-1 right-1 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold" 
+                                         style="background-color: var(--text-accent); color: var(--button-text);" 
+                                         x-text="day.flightCount"></div>
                                 </div>
                             </template>
                         </div>
@@ -322,42 +509,44 @@
                 
                 <!-- 表格视图 -->
                 <div x-show="currentView === 'table'" class="p-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-8">表格视图</h2>
+                    <h2 class="text-2xl font-bold mb-8" style="color: var(--text-primary);">表格视图</h2>
                     
                     <!-- 表格 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="rounded-theme shadow-md overflow-hidden crt-effect" style="background-color: var(--bg-secondary);">
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
+                            <table class="min-w-full divide-y" style="border-color: var(--border-color);">
+                                <thead style="background-color: var(--bg-tertiary);">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">航班号</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">起飞时间</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">飞行时长</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">燃料消耗</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">空姐</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">事件</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--text-secondary);">航班号</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--text-secondary);">起飞时间</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--text-secondary);">飞行时长</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--text-secondary);">燃料消耗</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--text-secondary);">空姐</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--text-secondary);">事件</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--text-secondary);">操作</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
                                     <template x-for="(log, index) in flightLogs" :key="log.id">
-                                        <tr class="hover:bg-gray-50" 
-                                            :class="index === 0 ? 'bg-blue-50 border-l-4 border-blue-500' : ''">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="log.flightNumber || '-'"></td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="formatDateTime(log.startTime)"></td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="formatDuration(log.duration)"></td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="log.fuelConsumption || 0"></td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="log.flightAttendant || '-'"></td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <tr class="transition duration-200" 
+                                            :style="index === 0 ? 'background-color: var(--bg-tertiary); border-left: 4px solid var(--text-accent);' : ''"
+                                            @mouseover="if(index !== 0) $el.style.backgroundColor = 'var(--bg-tertiary)'"
+                                            @mouseout="if(index !== 0) $el.style.backgroundColor = 'var(--bg-secondary)'">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);" x-text="log.flightNumber || '-'"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);" x-text="formatDateTime(log.startTime)"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);" x-text="formatDuration(log.duration)"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);" x-text="log.fuelConsumption || 0"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);" x-text="log.flightAttendant || '-'"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);">
                                                 <div class="flex space-x-2">
-                                                    <span x-show="log.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">迫降</span>
-                                                    <span x-show="log.airCrash" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">空雾</span>
-                                                    <span x-show="!log.forcedLanding && !log.airCrash" class="text-gray-500">-</span>
+                                                    <span x-show="log.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff8c00; color: #000000;">迫降</span>
+                                                    <span x-show="log.airCrash" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff4444; color: #ffffff;">空雾</span>
+                                                    <span x-show="!log.forcedLanding && !log.airCrash" style="color: var(--text-secondary);">-</span>
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button @click="viewLogDetails(log)" class="text-blue-600 hover:text-blue-900 mr-3">查看详情</button>
-                                                <button @click="editLogDetails(log)" class="text-green-600 hover:text-green-900">
+                                                <button @click="viewLogDetails(log)" class="mr-3 transition duration-200" style="color: var(--text-accent);" onmouseover="this.style.color='var(--button-primary-hover)'" onmouseout="this.style.color='var(--text-accent)'">查看详情</button>
+                                                <button @click="editLogDetails(log)" class="transition duration-200" style="color: #10b981;" onmouseover="this.style.color='#059669'" onmouseout="this.style.color='#10b981'">
                                                     <span x-show="index === 0 && (!log.flightNumber && !log.flightAttendant && !log.remarks)" class="font-semibold">补充详情</span>
                                                     <span x-show="!(index === 0 && (!log.flightNumber && !log.flightAttendant && !log.remarks))">编辑详情</span>
                                                 </button>
@@ -365,28 +554,28 @@
                                         </tr>
                                     </template>
                                     <tr x-show="flightLogs.length === 0">
-                                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">暂无飞行记录</td>
+                                        <td colspan="7" class="px-6 py-4 text-center" style="color: var(--text-secondary);">暂无飞行记录</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                         
                         <!-- 分页 -->
-                        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                        <div class="px-4 py-3 flex items-center justify-between sm:px-6" style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color);">
                             <div class="flex-1 flex justify-between sm:hidden">
-                                <button @click="loadPreviousPage" :disabled="currentPage <= 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">上一页</button>
-                                <button @click="loadNextPage" :disabled="!hasMorePages" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">下一页</button>
+                                <button @click="loadPreviousPage" :disabled="currentPage <= 1" class="relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-theme transition duration-200 disabled:opacity-50" style="border: 1px solid var(--border-color); color: var(--text-primary); background-color: var(--bg-secondary);" onmouseover="if(!this.disabled) this.style.backgroundColor='var(--bg-tertiary)'" onmouseout="if(!this.disabled) this.style.backgroundColor='var(--bg-secondary)'">上一页</button>
+                                <button @click="loadNextPage" :disabled="!hasMorePages" class="ml-3 relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-theme transition duration-200 disabled:opacity-50" style="border: 1px solid var(--border-color); color: var(--text-primary); background-color: var(--bg-secondary);" onmouseover="if(!this.disabled) this.style.backgroundColor='var(--bg-tertiary)'" onmouseout="if(!this.disabled) this.style.backgroundColor='var(--bg-secondary)'">下一页</button>
                             </div>
                             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                                 <div>
-                                    <p class="text-sm text-gray-700">
+                                    <p class="text-sm" style="color: var(--text-primary);">
                                         第 <span class="font-medium" x-text="currentPage"></span> 页
                                     </p>
                                 </div>
                                 <div>
-                                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                                        <button @click="loadPreviousPage" :disabled="currentPage <= 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">上一页</button>
-                                        <button @click="loadNextPage" :disabled="!hasMorePages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">下一页</button>
+                                    <nav class="relative z-0 inline-flex rounded-theme shadow-sm -space-x-px">
+                                        <button @click="loadPreviousPage" :disabled="currentPage <= 1" class="relative inline-flex items-center px-2 py-2 rounded-l-theme text-sm font-medium transition duration-200 disabled:opacity-50" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary); color: var(--text-secondary);" onmouseover="if(!this.disabled) this.style.backgroundColor='var(--bg-tertiary)'" onmouseout="if(!this.disabled) this.style.backgroundColor='var(--bg-secondary)'">上一页</button>
+                                        <button @click="loadNextPage" :disabled="!hasMorePages" class="relative inline-flex items-center px-2 py-2 rounded-r-theme text-sm font-medium transition duration-200 disabled:opacity-50" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary); color: var(--text-secondary);" onmouseover="if(!this.disabled) this.style.backgroundColor='var(--bg-tertiary)'" onmouseout="if(!this.disabled) this.style.backgroundColor='var(--bg-secondary)'">下一页</button>
                                     </nav>
                                 </div>
                             </div>
@@ -396,134 +585,151 @@
                 
                 <!-- 排行榜 -->
                 <div x-show="currentView === 'leaderboard'" class="p-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-8">排行榜</h2>
+                    <h2 class="text-2xl font-bold mb-8" style="color: var(--text-primary);">排行榜</h2>
                     
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <!-- 单次飞行时长排行榜 -->
-                        <div class="bg-white rounded-lg shadow-md p-6">
-                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <div class="rounded-theme shadow-md p-6 crt-effect" style="background-color: var(--bg-secondary);">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center" style="color: var(--text-primary);">
                                 🏆 单次飞行时长 Top 10
                             </h3>
                             <div class="space-y-3">
                                 <template x-for="(log, index) in topDurationLogs" :key="log.id">
-                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center justify-between p-3 rounded-theme" style="background-color: var(--bg-tertiary);">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
-                                                 :class="{
-                                                     'bg-yellow-500': index === 0,
-                                                     'bg-gray-400': index === 1,
-                                                     'bg-orange-500': index === 2,
-                                                     'bg-blue-500': index > 2
+                                                 :style="{
+                                                     'background': index === 0 ? '#ffd65c' : 
+                                                                 index === 1 ? '#c0c0c0' : 
+                                                                 index === 2 ? '#cd7f32' : 
+                                                                 'var(--text-accent)',
+                                                     'color': '#000000'
                                                  }"
                                                  x-text="index + 1">
                                             </div>
                                             <div>
-                                                <p class="font-medium" x-text="log.flightNumber || '无航班号'"></p>
-                                                <p class="text-sm text-gray-500" x-text="formatDateTime(log.startTime)"></p>
+                                                <p class="font-medium" style="color: var(--text-primary);" x-text="log.flightNumber || '无航班号'"></p>
+                                                <p class="text-sm" style="color: var(--text-secondary);" x-text="formatDateTime(log.startTime)"></p>
                                             </div>
                                         </div>
                                         <div class="text-right">
-                                            <p class="font-bold text-blue-600" x-text="formatDuration(log.duration)"></p>
+                                            <p class="font-bold" style="color: var(--text-accent);" x-text="formatDuration(log.duration)"></p>
                                         </div>
                                     </div>
                                 </template>
-                                <div x-show="topDurationLogs.length === 0" class="text-center text-gray-500 py-8">
+                                <div x-show="topDurationLogs.length === 0" class="text-center py-8" style="color: var(--text-secondary);">
                                     暂无数据
                                 </div>
                             </div>
                         </div>
                         
                         <!-- 燃料消耗排行榜 -->
-                        <div class="bg-white rounded-lg shadow-md p-6">
-                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <div class="rounded-theme shadow-md p-6 crt-effect" style="background-color: var(--bg-secondary);">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center" style="color: var(--text-primary);">
                                 ⛽ 燃料消耗排行榜 Top 10
                             </h3>
                             <div class="space-y-3">
                                 <template x-for="(log, index) in topFuelLogs" :key="log.id">
-                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center justify-between p-3 rounded-theme" style="background-color: var(--bg-tertiary);">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
-                                                 :class="{
-                                                     'bg-yellow-500': index === 0,
-                                                     'bg-gray-400': index === 1,
-                                                     'bg-orange-500': index === 2,
-                                                     'bg-blue-500': index > 2
+                                                 :style="{
+                                                     'background': index === 0 ? '#ffd65c' : 
+                                                                 index === 1 ? '#c0c0c0' : 
+                                                                 index === 2 ? '#cd7f32' : 
+                                                                 'var(--text-accent)',
+                                                     'color': '#000000'
                                                  }"
                                                  x-text="index + 1">
                                             </div>
                                             <div>
-                                                <p class="font-medium" x-text="log.flightNumber || '无航班号'"></p>
-                                                <p class="text-sm text-gray-500" x-text="formatDateTime(log.startTime)"></p>
+                                                <p class="font-medium" style="color: var(--text-primary);" x-text="log.flightNumber || '无航班号'"></p>
+                                                <p class="text-sm" style="color: var(--text-secondary);" x-text="formatDateTime(log.startTime)"></p>
                                             </div>
                                         </div>
                                         <div class="text-right">
-                                            <p class="font-bold text-green-600" x-text="log.fuelConsumption"></p>
+                                            <p class="font-bold" style="color: #10b981;" x-text="log.fuelConsumption"></p>
                                         </div>
                                     </div>
                                 </template>
-                                <div x-show="topFuelLogs.length === 0" class="text-center text-gray-500 py-8">
+                                <div x-show="topFuelLogs.length === 0" class="text-center py-8" style="color: var(--text-secondary);">
                                     暂无数据
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- 单次飞行时长PK榜 -->
-                        <div class="bg-white rounded-lg shadow-md p-6">
-                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <!-- 单次飞行时长PK榜 - 使用紫色渐变主题 -->
+                        <div class="rounded-theme shadow-md p-6 crt-effect" 
+                             :style="currentTheme === 'dark' ? 'background: linear-gradient(135deg, #4c1d95, #7c3aed); border: 1px solid var(--text-accent);' : 'background: linear-gradient(135deg, #f3e8ff, #e879f9); border: 1px solid #d8b4fe;'">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center" 
+                                :style="currentTheme === 'dark' ? 'color: #ffd65c;' : 'color: #7c2d12;'">
                                 🔥 单次飞行时长PK榜
                             </h3>
                             <div class="space-y-3">
                                 <template x-for="(user, index) in maxDurationLeaderboard" :key="user.username">
-                                    <div class="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border">
+                                    <div class="flex items-center justify-between p-3 rounded-theme border" 
+                                         :style="currentTheme === 'dark' ? 'background: rgba(255, 214, 92, 0.1); border-color: var(--text-accent);' : 'background: linear-gradient(to right, #fdf4ff, #fae8ff); border-color: #d8b4fe;'">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
-                                                 :class="{
-                                                     'bg-gradient-to-r from-yellow-400 to-yellow-600': index === 0,
-                                                     'bg-gradient-to-r from-gray-300 to-gray-500': index === 1,
-                                                     'bg-gradient-to-r from-orange-400 to-red-500': index === 2,
-                                                     'bg-gradient-to-r from-purple-400 to-pink-500': index > 2
+                                                 :style="{
+                                                     'background': index === 0 ? 'linear-gradient(to right, #fbbf24, #f59e0b)' : 
+                                                                 index === 1 ? 'linear-gradient(to right, #9ca3af, #6b7280)' : 
+                                                                 index === 2 ? 'linear-gradient(to right, #fb923c, #ea580c)' : 
+                                                                 'linear-gradient(to right, #a855f7, #ec4899)',
+                                                     'color': '#000000'
                                                  }"
                                                  x-text="index + 1">
                                             </div>
                                             <div>
-                                                <p class="font-bold text-purple-800" x-text="user.username"></p>
-                                                <p class="text-sm text-gray-600" x-text="user.flightNumber || '无航班号'"></p>
-                                                <p class="text-xs text-gray-500" x-text="user.flightAttendant ? '空姐: ' + user.flightAttendant : ''"></p>
+                                                <p class="font-bold" 
+                                                   :style="currentTheme === 'dark' ? 'color: #ffd65c;' : 'color: #7c2d12;'" 
+                                                   x-text="user.username"></p>
+                                                <p class="text-sm" 
+                                                   :style="currentTheme === 'dark' ? 'color: #eeeeee;' : 'color: #6b7280;'" 
+                                                   x-text="user.flightNumber || '无航班号'"></p>
+                                                <p class="text-xs" 
+                                                   :style="currentTheme === 'dark' ? 'color: #eeeeee;' : 'color: #9ca3af;'" 
+                                                   x-text="user.flightAttendant ? '空姐: ' + user.flightAttendant : ''"></p>
                                             </div>
                                         </div>
                                         <div class="text-right">
-                                            <p class="font-bold text-purple-600 text-lg" x-text="formatDuration(user.maxDuration)"></p>
-                                            <p class="text-xs text-gray-500" x-text="formatDateTime(user.startTime)"></p>
+                                            <p class="font-bold text-lg" 
+                                               :style="currentTheme === 'dark' ? 'color: #ffd65c;' : 'color: #9333ea;'" 
+                                               x-text="formatDuration(user.maxDuration)"></p>
+                                            <p class="text-xs" 
+                                               :style="currentTheme === 'dark' ? 'color: #eeeeee;' : 'color: #9ca3af;'" 
+                                               x-text="formatDateTime(user.startTime)"></p>
                                         </div>
                                     </div>
                                 </template>
-                                <div x-show="maxDurationLeaderboard.length === 0" class="text-center text-gray-500 py-8">
+                                <div x-show="maxDurationLeaderboard.length === 0" class="text-center py-8" 
+                                     :style="currentTheme === 'dark' ? 'color: #eeeeee;' : 'color: #9ca3af;'">
                                     暂无PK数据
                                 </div>
                             </div>
                         </div>
                     </div>
                     <!-- 月度统计 -->
-                    <div class="mt-8 bg-white rounded-lg shadow-md p-6">
-                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <div class="mt-8 rounded-theme shadow-md p-6 crt-effect" style="background-color: var(--bg-secondary);">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center" style="color: var(--text-primary);">
                             📅 月度飞行统计
                         </h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div class="text-center p-4 bg-blue-50 rounded-lg">
-                                <p class="text-2xl font-bold text-blue-600" x-text="stats.monthFlights || 0"></p>
-                                <p class="text-sm text-gray-600">本月飞行次数</p>
+                            <div class="text-center p-4 rounded-theme" style="background-color: var(--bg-tertiary);">
+                                <p class="text-2xl font-bold" style="color: var(--text-accent);" x-text="stats.monthFlights || 0"></p>
+                                <p class="text-sm" style="color: var(--text-secondary);">本月飞行次数</p>
                             </div>
-                            <div class="text-center p-4 bg-green-50 rounded-lg">
-                                <p class="text-2xl font-bold text-green-600" x-text="formatDuration(monthlyStats.totalDuration || 0)"></p>
-                                <p class="text-sm text-gray-600">本月总时长</p>
+                            <div class="text-center p-4 rounded-theme" style="background-color: var(--bg-tertiary);">
+                                <p class="text-2xl font-bold" style="color: #10b981;" x-text="formatDuration(monthlyStats.totalDuration || 0)"></p>
+                                <p class="text-sm" style="color: var(--text-secondary);">本月总时长</p>
                             </div>
-                            <div class="text-center p-4 bg-purple-50 rounded-lg">
-                                <p class="text-2xl font-bold text-purple-600" x-text="formatDuration(monthlyStats.avgDuration || 0)"></p>
-                                <p class="text-sm text-gray-600">本月平均时长</p>
+                            <div class="text-center p-4 rounded-theme" style="background-color: var(--bg-tertiary);">
+                                <p class="text-2xl font-bold" style="color: #8b5cf6;" x-text="formatDuration(monthlyStats.avgDuration || 0)"></p>
+                                <p class="text-sm" style="color: var(--text-secondary);">本月平均时长</p>
                             </div>
-                            <div class="text-center p-4 bg-orange-50 rounded-lg">
-                                <p class="text-2xl font-bold text-orange-600" x-text="monthlyStats.maxDuration ? formatDuration(monthlyStats.maxDuration) : '0秒'"></p>
-                                <p class="text-sm text-gray-600">本月最长单次</p>
+                            <div class="text-center p-4 rounded-theme" style="background-color: var(--bg-tertiary);">
+                                <p class="text-2xl font-bold" style="color: #f97316;" x-text="monthlyStats.maxDuration ? formatDuration(monthlyStats.maxDuration) : '0秒'"></p>
+                                <p class="text-sm" style="color: var(--text-secondary);">本月最长单次</p>
                             </div>
                         </div>
                     </div>
@@ -531,49 +737,70 @@
                 
                 <!-- 数据管理 -->
                 <div x-show="currentView === 'data'" class="p-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-8">数据管理</h2>
+                    <h2 class="text-2xl font-bold mb-8" style="color: var(--text-primary);">数据管理</h2>
                     
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <!-- 导出数据 -->
-                        <div class="bg-white rounded-lg shadow-md p-6">
-                            <h3 class="text-lg font-semibold mb-4">导出数据</h3>
-                            <p class="text-gray-600 mb-4">将您的飞行记录导出为文件保存到本地。</p>
+                        <div class="rounded-theme shadow-md p-6 crt-effect" style="background-color: var(--bg-secondary);">
+                            <h3 class="text-lg font-semibold mb-4" style="color: var(--text-primary);">导出数据</h3>
+                            <p class="mb-4" style="color: var(--text-secondary);">将您的飞行记录导出为文件保存到本地。</p>
                             <div class="space-y-3">
                                 <button @click="exportJSON" :disabled="loading" 
-                                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-200 disabled:opacity-50">
+                                    class="w-full font-bold py-2 px-4 rounded-theme transition duration-200 disabled:opacity-50"
+                                    style="background-color: var(--button-primary); color: var(--button-text);"
+                                    onmouseover="if(!this.disabled) this.style.backgroundColor='var(--button-primary-hover)'"
+                                    onmouseout="if(!this.disabled) this.style.backgroundColor='var(--button-primary)'">
                                     📋 导出为 JSON 格式
                                 </button>
                                 <button @click="exportCSV" :disabled="loading"
-                                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition duration-200 disabled:opacity-50">
+                                    class="w-full font-bold py-2 px-4 rounded-theme transition duration-200 disabled:opacity-50"
+                                    style="background-color: #10b981; color: white;"
+                                    onmouseover="if(!this.disabled) this.style.backgroundColor='#059669'"
+                                    onmouseout="if(!this.disabled) this.style.backgroundColor='#10b981'">
                                     📈 导出为 CSV 格式
                                 </button>
                             </div>
                         </div>
                         
                         <!-- 导入数据 -->
-                        <div class="bg-white rounded-lg shadow-md p-6">
-                            <h3 class="text-lg font-semibold mb-4">导入数据</h3>
-                            <div class="bg-orange-50 border border-orange-200 rounded-md p-4 mb-4">
+                        <div class="rounded-theme shadow-md p-6 crt-effect" style="background-color: var(--bg-secondary);">
+                            <h3 class="text-lg font-semibold mb-4" style="color: var(--text-primary);">导入数据</h3>
+                            <div class="rounded-theme p-4 mb-4" 
+                                 :style="currentTheme === 'dark' ? 'background-color: rgba(255, 140, 0, 0.2); border: 1px solid #ff8c00;' : 'background-color: #fef3c7; border: 1px solid #f59e0b;'">
                                 <div class="flex">
                                     <div class="flex-shrink-0">
-                                        <svg class="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg class="h-5 w-5" 
+                                             :style="currentTheme === 'dark' ? 'color: #ffd65c;' : 'color: #f59e0b;'" 
+                                             viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                                         </svg>
                                     </div>
                                     <div class="ml-3">
-                                        <h4 class="text-sm font-medium text-orange-800">注意</h4>
-                                        <p class="text-sm text-orange-700">导入数据将会<strong>覆盖</strong>您现有的所有飞行记录，请谨慎操作。</p>
+                                        <h4 class="text-sm font-medium" 
+                                            :style="currentTheme === 'dark' ? 'color: #ffd65c;' : 'color: #92400e;'">注意</h4>
+                                        <p class="text-sm" 
+                                           :style="currentTheme === 'dark' ? 'color: #eeeeee;' : 'color: #b45309;'">
+                                            导入数据将会<strong>覆盖</strong>您现有的所有飞行记录，请谨慎操作。
+                                        </p>
                                     </div>
                                 </div>
                             </div>
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">选择 JSON 文件</label>
+                                    <label class="block text-sm font-medium mb-2" style="color: var(--text-primary);">选择 JSON 文件</label>
                                     <input type="file" @change="handleFileSelect" accept=".json" 
-                                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                        class="block w-full text-sm rounded-theme transition duration-200"
+                                        style="color: var(--text-primary); background-color: var(--input-bg); border: 1px solid var(--border-color);"
+                                        onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                        onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';"
+                                        style-file="file:mr-4 file:py-2 file:px-4 file:rounded-theme file:border-0 file:text-sm file:font-semibold;"
+                                        :style-file="currentTheme === 'dark' ? 'file:background-color: var(--button-primary); file:color: var(--button-text);' : 'file:background-color: #dbeafe; file:color: #1e40af;'">
                                 </div>
                                 <button @click="importData" :disabled="!selectedFile || loading"
-                                    class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-200 disabled:opacity-50">
+                                    class="w-full font-bold py-2 px-4 rounded-theme transition duration-200 disabled:opacity-50"
+                                    style="background-color: #dc2626; color: white;"
+                                    onmouseover="if(!this.disabled) this.style.backgroundColor='#b91c1c'"
+                                    onmouseout="if(!this.disabled) this.style.backgroundColor='#dc2626'">
                                     📎 导入数据（覆盖模式）
                                 </button>
                             </div>
@@ -585,138 +812,165 @@
         
         <!-- 飞行详情模态框 -->
         <div x-show="showFlightModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-                <h3 class="text-lg font-semibold mb-4">
+            <div class="rounded-theme p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto crt-effect" style="background-color: var(--bg-secondary);">
+                <h3 class="text-lg font-semibold mb-4" style="color: var(--text-primary);">
                     <span x-show="!selectedLog">补充飞行详情</span>
                     <span x-show="selectedLog">编辑飞行详情</span>
                 </h3>
                 <form @submit.prevent="saveFlightLog">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">航班号</label>
+                            <label class="block text-sm font-medium mb-1" style="color: var(--text-primary);">航班号</label>
                             <input x-model="flightForm.flightNumber" type="text" 
                                 placeholder="AV 番号或者网址或者小黄油"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">AV 番号或者网址或者小黄油</p>
+                                class="w-full px-3 py-2 rounded-theme transition duration-200"
+                                style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';">
+                            <p class="text-xs mt-1" style="color: var(--text-secondary);">AV 番号或者网址或者小黄油</p>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">燃料消耗</label>
+                            <label class="block text-sm font-medium mb-1" style="color: var(--text-primary);">燃料消耗</label>
                             <div class="space-y-2">
                                 <!-- 预设选项 -->
                                 <div class="flex space-x-2">
                                     <button type="button" @click="flightForm.fuelConsumption = 1" 
-                                        :class="flightForm.fuelConsumption === 1 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'"
-                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">1级</button>
+                                        class="px-3 py-1 rounded-theme text-sm font-medium transition duration-200"
+                                        :style="flightForm.fuelConsumption === 1 ? 'background-color: var(--button-primary); color: var(--button-text);' : 'background-color: var(--bg-tertiary); color: var(--text-primary);'">1级</button>
                                     <button type="button" @click="flightForm.fuelConsumption = 2" 
-                                        :class="flightForm.fuelConsumption === 2 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'"
-                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">2级</button>
+                                        class="px-3 py-1 rounded-theme text-sm font-medium transition duration-200"
+                                        :style="flightForm.fuelConsumption === 2 ? 'background-color: var(--button-primary); color: var(--button-text);' : 'background-color: var(--bg-tertiary); color: var(--text-primary);'">2级</button>
                                     <button type="button" @click="flightForm.fuelConsumption = 3" 
-                                        :class="flightForm.fuelConsumption === 3 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'"
-                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">3级</button>
+                                        class="px-3 py-1 rounded-theme text-sm font-medium transition duration-200"
+                                        :style="flightForm.fuelConsumption === 3 ? 'background-color: var(--button-primary); color: var(--button-text);' : 'background-color: var(--bg-tertiary); color: var(--text-primary);'">3级</button>
                                 </div>
                                 <!-- 自定义输入 -->
                                 <div class="flex items-center space-x-2">
-                                    <label class="text-sm text-gray-600">自定义:</label>
+                                    <label class="text-sm" style="color: var(--text-secondary);">自定义:</label>
                                     <input x-model.number="flightForm.fuelConsumption" type="number" min="0" max="100"
                                         placeholder="输入数值"
-                                        class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500">
+                                        class="flex-1 px-2 py-1 rounded-theme text-sm transition duration-200"
+                                        style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                        onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                        onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';">
                                 </div>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">选择1-3级预设或自定义发射次数</p>
+                            <p class="text-xs mt-1" style="color: var(--text-secondary);">选择1-3级预设或自定义发射次数</p>
                         </div>
                         
                         <div class="flex items-start space-x-6">
                             <label class="flex items-start space-x-2">
                                 <input x-model="flightForm.forcedLanding" type="checkbox" class="mt-1">
                                 <div>
-                                    <span class="text-sm text-gray-700 font-medium">迫降</span>
-                                    <p class="text-xs text-gray-500">中途因为突发事情突然中断软掉</p>
+                                    <span class="text-sm font-medium" style="color: var(--text-primary);">迫降</span>
+                                    <p class="text-xs" style="color: var(--text-secondary);">中途因为突发事情突然中断软掉</p>
                                 </div>
                             </label>
                             <label class="flex items-start space-x-2">
                                 <input x-model="flightForm.airCrash" type="checkbox" class="mt-1">
                                 <div>
-                                    <span class="text-sm text-gray-700 font-medium">空雾</span>
-                                    <p class="text-xs text-gray-500">剧情或画面雷到让人瞬间熄火</p>
+                                    <span class="text-sm font-medium" style="color: var(--text-primary);">空雾</span>
+                                    <p class="text-xs" style="color: var(--text-secondary);">剧情或画面雷到让人瞬间熄火</p>
                                 </div>
                             </label>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">空姐</label>
+                            <label class="block text-sm font-medium mb-1" style="color: var(--text-primary);">空姐</label>
                             <input x-model="flightForm.flightAttendant" type="text" 
                                 placeholder="AV女优或者伴侣"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">AV女优或者伴侣</p>
+                                class="w-full px-3 py-2 rounded-theme transition duration-200"
+                                style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';">
+                            <p class="text-xs mt-1" style="color: var(--text-secondary);">AV女优或者伴侣</p>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">副机长</label>
+                            <label class="block text-sm font-medium mb-1" style="color: var(--text-primary);">副机长</label>
                             <input x-model="flightForm.copilot" type="text" 
                                 placeholder="陪你一起起飞的人"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">陪你一起起飞的人</p>
+                                class="w-full px-3 py-2 rounded-theme transition duration-200"
+                                style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';">
+                            <p class="text-xs mt-1" style="color: var(--text-secondary);">陪你一起起飞的人</p>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">机库</label>
+                            <label class="block text-sm font-medium mb-1" style="color: var(--text-primary);">机库</label>
                             <input x-model="flightForm.hangar" type="text" 
                                 placeholder="存放AV、小黄油、种子的硬盘或网盘"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">存放AV、小黄油、种子的硬盘或网盘</p>
+                                class="w-full px-3 py-2 rounded-theme transition duration-200"
+                                style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';">
+                            <p class="text-xs mt-1" style="color: var(--text-secondary);">存放AV、小黄油、种子的硬盘或网盘</p>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">舱压</label>
+                            <label class="block text-sm font-medium mb-1" style="color: var(--text-primary);">舱压</label>
                             <div class="space-y-2">
                                 <!-- 预设选项 -->
                                 <div class="flex space-x-2">
                                     <button type="button" @click="flightForm.cabinPressure = '1'" 
-                                        :class="flightForm.cabinPressure === '1' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'"
-                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">1级</button>
+                                        class="px-3 py-1 rounded-theme text-sm font-medium transition duration-200"
+                                        :style="flightForm.cabinPressure === '1' ? 'background-color: #ef4444; color: white;' : 'background-color: var(--bg-tertiary); color: var(--text-primary);'">1级</button>
                                     <button type="button" @click="flightForm.cabinPressure = '2'" 
-                                        :class="flightForm.cabinPressure === '2' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'"
-                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">2级</button>
+                                        class="px-3 py-1 rounded-theme text-sm font-medium transition duration-200"
+                                        :style="flightForm.cabinPressure === '2' ? 'background-color: #ef4444; color: white;' : 'background-color: var(--bg-tertiary); color: var(--text-primary);'">2级</button>
                                     <button type="button" @click="flightForm.cabinPressure = '3'" 
-                                        :class="flightForm.cabinPressure === '3' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'"
-                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">3级</button>
+                                        class="px-3 py-1 rounded-theme text-sm font-medium transition duration-200"
+                                        :style="flightForm.cabinPressure === '3' ? 'background-color: #ef4444; color: white;' : 'background-color: var(--bg-tertiary); color: var(--text-primary);'">3级</button>
                                     <button type="button" @click="flightForm.cabinPressure = '4'" 
-                                        :class="flightForm.cabinPressure === '4' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'"
-                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">4级</button>
+                                        class="px-3 py-1 rounded-theme text-sm font-medium transition duration-200"
+                                        :style="flightForm.cabinPressure === '4' ? 'background-color: #ef4444; color: white;' : 'background-color: var(--bg-tertiary); color: var(--text-primary);'">4级</button>
                                     <button type="button" @click="flightForm.cabinPressure = '5'" 
-                                        :class="flightForm.cabinPressure === '5' ? 'bg-red-600 text-white font-bold' : 'bg-gray-200 text-gray-700'"
-                                        class="px-3 py-1 rounded text-sm font-medium transition duration-200 hover:opacity-80">🔥 5级</button>
+                                        class="px-3 py-1 rounded-theme text-sm font-medium transition duration-200"
+                                        :style="flightForm.cabinPressure === '5' ? 'background-color: #dc2626; color: white; font-weight: bold;' : 'background-color: var(--bg-tertiary); color: var(--text-primary);'">🔥 5级</button>
                                 </div>
                                 <!-- 自定义输入 -->
                                 <div class="flex items-center space-x-2">
-                                    <label class="text-sm text-gray-600">自定义:</label>
+                                    <label class="text-sm" style="color: var(--text-secondary);">自定义:</label>
                                     <input x-model="flightForm.cabinPressure" type="text" 
                                         placeholder="自定义描述"
-                                        class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500">
+                                        class="flex-1 px-2 py-1 rounded-theme text-sm transition duration-200"
+                                        style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                        onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                        onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';">
                                 </div>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">选择1-5级预设或自定义高潮程度（5级最高）</p>
+                            <p class="text-xs mt-1" style="color: var(--text-secondary);">选择1-5级预设或自定义高潮程度（5级最高）</p>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+                            <label class="block text-sm font-medium mb-1" style="color: var(--text-primary);">备注</label>
                             <textarea x-model="flightForm.remarks" rows="3"
                                 placeholder="记录额外信息或特殊情况..."
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"></textarea>
-                            <p class="text-xs text-gray-500 mt-1">记录额外信息或特殊情况</p>
+                                class="w-full px-3 py-2 rounded-theme transition duration-200"
+                                style="border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-primary);"
+                                onfocus="this.style.backgroundColor='var(--input-focus-bg)'; this.style.borderColor='var(--input-focus-border)'; this.style.outline='none';"
+                                onblur="this.style.backgroundColor='var(--input-bg)'; this.style.borderColor='var(--border-color)';" ></textarea>
+                            <p class="text-xs mt-1" style="color: var(--text-secondary);">记录额外信息或特殊情况</p>
                         </div>
                     </div>
                     
                     <div class="flex space-x-3 mt-6">
                         <button type="submit" 
-                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+                            class="flex-1 font-bold py-2 px-4 rounded-theme transition duration-200"
+                            style="background-color: var(--button-primary); color: var(--button-text);"
+                            onmouseover="this.style.backgroundColor='var(--button-primary-hover)'"
+                            onmouseout="this.style.backgroundColor='var(--button-primary)'"
                             :disabled="loading">
                             <span x-show="!selectedLog">保存</span>
                             <span x-show="selectedLog">更新详情</span>
                         </button>
                         <button type="button" @click="cancelFlightLog"
-                            class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                            class="flex-1 font-bold py-2 px-4 rounded-theme transition duration-200"
+                            style="background-color: #6b7280; color: white;"
+                            onmouseover="this.style.backgroundColor='#4b5563'"
+                            onmouseout="this.style.backgroundColor='#6b7280'">
                             取消
                         </button>
                     </div>
@@ -726,10 +980,10 @@
         
         <!-- 日历日期详情模态框 -->
         <div x-show="showDayModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="rounded-theme p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto crt-effect" style="background-color: var(--bg-secondary);">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold" x-text="selectedDay ? selectedDay.dateStr + ' 飞行记录' : ''"></h3>
-                    <button @click="showDayModal = false" class="text-gray-400 hover:text-gray-600">
+                    <h3 class="text-lg font-semibold" style="color: var(--text-primary);" x-text="selectedDay ? selectedDay.dateStr + ' 飞行记录' : ''"></h3>
+                    <button @click="showDayModal = false" class="transition duration-200" style="color: var(--text-secondary);" onmouseover="this.style.color='var(--text-accent)'" onmouseout="this.style.color='var(--text-secondary)'">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -737,25 +991,25 @@
                 </div>
                 <div class="space-y-4">
                     <template x-for="log in dayLogs" :key="log.id">
-                        <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="rounded-theme p-4" style="background-color: var(--bg-tertiary);">
                             <div class="flex justify-between items-start mb-2">
-                                <h4 class="font-medium" x-text="log.flightNumber || '无航班号'"></h4>
-                                <span class="text-sm text-gray-500" x-text="formatTime(log.startTime) + ' - ' + formatTime(log.endTime)"></span>
+                                <h4 class="font-medium" style="color: var(--text-primary);" x-text="log.flightNumber || '无航班号'"></h4>
+                                <span class="text-sm" style="color: var(--text-secondary);" x-text="formatTime(log.startTime) + ' - ' + formatTime(log.endTime)"></span>
                             </div>
-                            <div class="text-sm text-gray-600 space-y-1">
+                            <div class="text-sm space-y-1" style="color: var(--text-secondary);">
                                 <p><strong>飞行时长:</strong> <span x-text="formatDuration(log.duration)"></span></p>
                                 <p x-show="log.flightAttendant"><strong>空姐:</strong> <span x-text="log.flightAttendant"></span></p>
                                 <p x-show="log.fuelConsumption > 0"><strong>燃料消耗:</strong> <span x-text="log.fuelConsumption"></span></p>
                                 <p x-show="log.cabinPressure"><strong>舱压:</strong> <span x-text="log.cabinPressure"></span></p>
                                 <div x-show="log.forcedLanding || log.airCrash" class="flex space-x-2">
-                                    <span x-show="log.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">迫降</span>
-                                    <span x-show="log.airCrash" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">空雾</span>
+                                    <span x-show="log.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff8c00; color: #000000;">迫降</span>
+                                    <span x-show="log.airCrash" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff4444; color: #ffffff;">空雾</span>
                                 </div>
                                 <p x-show="log.remarks" class="mt-2"><strong>备注:</strong> <span x-text="log.remarks"></span></p>
                             </div>
                         </div>
                     </template>
-                    <div x-show="dayLogs.length === 0" class="text-center text-gray-500 py-8">
+                    <div x-show="dayLogs.length === 0" class="text-center py-8" style="color: var(--text-secondary);">
                         该日期没有飞行记录
                     </div>
                 </div>
@@ -764,12 +1018,12 @@
         
         <!-- 飞行记录详情模态框 -->
         <div x-show="showLogModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="rounded-theme p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto crt-effect" style="background-color: var(--bg-secondary);">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">飞行记录详情</h3>
+                    <h3 class="text-lg font-semibold" style="color: var(--text-primary);">飞行记录详情</h3>
                     <div class="flex items-center space-x-2">
-                        <button @click="editLogDetails(selectedLog)" class="text-green-600 hover:text-green-900 text-sm">编辑详情</button>
-                        <button @click="showLogModal = false" class="text-gray-400 hover:text-gray-600">
+                        <button @click="editLogDetails(selectedLog)" class="text-sm transition duration-200" style="color: #10b981;" onmouseover="this.style.color='#059669'" onmouseout="this.style.color='#10b981'">编辑详情</button>
+                        <button @click="showLogModal = false" class="transition duration-200" style="color: var(--text-secondary);" onmouseover="this.style.color='var(--text-accent)'" onmouseout="this.style.color='var(--text-secondary)'">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -779,53 +1033,53 @@
                 <div x-show="selectedLog" class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-500">航班号</label>
-                            <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? (selectedLog.flightNumber || '-') : ''"></p>
+                            <label class="block text-sm font-medium" style="color: var(--text-secondary);">航班号</label>
+                            <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? (selectedLog.flightNumber || '-') : ''"></p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-500">燃料消耗</label>
-                            <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? (selectedLog.fuelConsumption || 0) : ''"></p>
+                            <label class="block text-sm font-medium" style="color: var(--text-secondary);">燃料消耗</label>
+                            <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? (selectedLog.fuelConsumption || 0) : ''"></p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-500">起飞时间</label>
-                            <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? formatDateTime(selectedLog.startTime) : ''"></p>
+                            <label class="block text-sm font-medium" style="color: var(--text-secondary);">起飞时间</label>
+                            <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? formatDateTime(selectedLog.startTime) : ''"></p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-500">降落时间</label>
-                            <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? formatDateTime(selectedLog.endTime) : ''"></p>
+                            <label class="block text-sm font-medium" style="color: var(--text-secondary);">降落时间</label>
+                            <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? formatDateTime(selectedLog.endTime) : ''"></p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-500">飞行时长</label>
-                            <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? formatDuration(selectedLog.duration) : ''"></p>
+                            <label class="block text-sm font-medium" style="color: var(--text-secondary);">飞行时长</label>
+                            <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? formatDuration(selectedLog.duration) : ''"></p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-500">事件</label>
+                            <label class="block text-sm font-medium" style="color: var(--text-secondary);">事件</label>
                             <div class="mt-1 flex space-x-2">
-                                <span x-show="selectedLog && selectedLog.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">迫降</span>
-                                <span x-show="selectedLog && selectedLog.airCrash" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">空难</span>
-                                <span x-show="selectedLog && !selectedLog.forcedLanding && !selectedLog.airCrash" class="text-gray-500">-</span>
+                                <span x-show="selectedLog && selectedLog.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff8c00; color: #000000;">迫降</span>
+                                <span x-show="selectedLog && selectedLog.airCrash" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff4444; color: #ffffff;">空雾</span>
+                                <span x-show="selectedLog && !selectedLog.forcedLanding && !selectedLog.airCrash" style="color: var(--text-secondary);">-</span>
                             </div>
                         </div>
                     </div>
                     <div x-show="selectedLog && selectedLog.flightAttendant">
-                        <label class="block text-sm font-medium text-gray-500">空姐</label>
-                        <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? selectedLog.flightAttendant : ''"></p>
+                        <label class="block text-sm font-medium" style="color: var(--text-secondary);">空姐</label>
+                        <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? selectedLog.flightAttendant : ''"></p>
                     </div>
                     <div x-show="selectedLog && selectedLog.copilot">
-                        <label class="block text-sm font-medium text-gray-500">副机长</label>
-                        <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? selectedLog.copilot : ''"></p>
+                        <label class="block text-sm font-medium" style="color: var(--text-secondary);">副机长</label>
+                        <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? selectedLog.copilot : ''"></p>
                     </div>
                     <div x-show="selectedLog && selectedLog.hangar">
-                        <label class="block text-sm font-medium text-gray-500">机库</label>
-                        <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? selectedLog.hangar : ''"></p>
+                        <label class="block text-sm font-medium" style="color: var(--text-secondary);">机库</label>
+                        <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? selectedLog.hangar : ''"></p>
                     </div>
                     <div x-show="selectedLog && selectedLog.cabinPressure">
-                        <label class="block text-sm font-medium text-gray-500">舱压</label>
-                        <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? selectedLog.cabinPressure : ''"></p>
+                        <label class="block text-sm font-medium" style="color: var(--text-secondary);">舱压</label>
+                        <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? selectedLog.cabinPressure : ''"></p>
                     </div>
                     <div x-show="selectedLog && selectedLog.remarks">
-                        <label class="block text-sm font-medium text-gray-500">备注</label>
-                        <p class="mt-1 text-sm text-gray-900" x-text="selectedLog ? selectedLog.remarks : ''"></p>
+                        <label class="block text-sm font-medium" style="color: var(--text-secondary);">备注</label>
+                        <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? selectedLog.remarks : ''"></p>
                     </div>
                 </div>
             </div>
@@ -833,7 +1087,8 @@
         
         <!-- 通知消息 -->
         <div x-show="notification.show" x-cloak
-            class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50"
+            class="fixed top-4 right-4 px-6 py-3 rounded-theme shadow-lg z-50"
+            style="background-color: #10b981; color: white;"
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform translate-x-full"
             x-transition:enter-end="opacity-100 transform translate-x-0">
