@@ -535,7 +535,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);" x-text="log.flightNumber || '-'"></td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);" x-text="formatDateTime(log.startTime)"></td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);" x-text="formatDuration(log.duration)"></td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);" x-text="log.fuelConsumption || 0"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);" x-text="formatNumber(log.fuelConsumption)"></td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);" x-text="log.flightAttendant || '-'"></td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--text-primary);">
                                                 <div class="flex space-x-2">
@@ -648,7 +648,7 @@
                                             </div>
                                         </div>
                                         <div class="text-right">
-                                            <p class="font-bold" style="color: #10b981;" x-text="log.fuelConsumption"></p>
+                                            <p class="font-bold" style="color: #10b981;" x-text="formatNumber(log.fuelConsumption)"></p>
                                         </div>
                                     </div>
                                 </template>
@@ -999,7 +999,7 @@
                             <div class="text-sm space-y-1" style="color: var(--text-secondary);">
                                 <p><strong>飞行时长:</strong> <span x-text="formatDuration(log.duration)"></span></p>
                                 <p x-show="log.flightAttendant"><strong>空姐:</strong> <span x-text="log.flightAttendant"></span></p>
-                                <p x-show="log.fuelConsumption > 0"><strong>燃料消耗:</strong> <span x-text="log.fuelConsumption"></span></p>
+                                <p x-show="log.fuelConsumption > 0"><strong>燃料消耗:</strong> <span x-text="formatNumber(log.fuelConsumption)"></span></p>
                                 <p x-show="log.cabinPressure"><strong>舱压:</strong> <span x-text="log.cabinPressure"></span></p>
                                 <div x-show="log.forcedLanding || log.airCrash" class="flex space-x-2">
                                     <span x-show="log.forcedLanding" class="inline-flex items-center px-2 py-1 rounded-theme text-xs font-medium" style="background-color: #ff8c00; color: #000000;">迫降</span>
@@ -1038,7 +1038,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium" style="color: var(--text-secondary);">燃料消耗</label>
-                            <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? (selectedLog.fuelConsumption || 0) : ''"></p>
+                            <p class="mt-1 text-sm" style="color: var(--text-primary);" x-text="selectedLog ? formatNumber(selectedLog.fuelConsumption) : ''"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium" style="color: var(--text-secondary);">起飞时间</label>

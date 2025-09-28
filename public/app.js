@@ -15,8 +15,8 @@ function app() {
         
         // 表单数据
         loginForm: {
-            username: 'demo',
-            password: 'demodemo'
+            username: '',
+            password: ''
         },
         registerForm: {
             username: '',
@@ -79,12 +79,36 @@ function app() {
             // 初始化主题
             this.initTheme();
             
+            // 初始化登录表单
+            this.initLoginForm();
+            
             await this.checkAuthStatus();
             if (this.isLoggedIn) {
                 console.log('用户已登录，开始加载初始数据');
                 // 加载所有视图的数据
                 await this.loadAllViewsData();
             }
+        },
+        
+        // 初始化登录表单
+        initLoginForm() {
+            // 检查是否是首次访问
+            const hasVisited = localStorage.getItem('flightlog-has-visited');
+            // 获取上次登录的用户名
+            const lastUsername = localStorage.getItem('flightlog-last-username');
+            
+            if (!hasVisited) {
+                // 首次访问，使用demo账号
+                this.loginForm.username = 'demo';
+                this.loginForm.password = 'demodemo';
+                // 标记已访问
+                localStorage.setItem('flightlog-has-visited', 'true');
+            } else if (lastUsername) {
+                // 非首次访问且有上次登录记录，使用上次的用户名
+                this.loginForm.username = lastUsername;
+                this.loginForm.password = ''; // 密码不留存
+            }
+            // 否则保持空值
         },
         
         // 初始化主题
@@ -213,6 +237,8 @@ function app() {
                 if (response.ok) {
                     this.isLoggedIn = true;
                     this.user = data.user;
+                    // 保存用户名到 localStorage
+                    localStorage.setItem('flightlog-last-username', this.loginForm.username);
                     this.showNotification('登录成功！');
                     await this.loadAllViewsData();
                 } else {
@@ -245,6 +271,8 @@ function app() {
                 if (response.ok) {
                     this.isLoggedIn = true;
                     this.user = data.user;
+                    // 保存用户名到 localStorage
+                    localStorage.setItem('flightlog-last-username', this.registerForm.username);
                     this.showNotification('注册成功！');
                     await this.loadAllViewsData();
                 } else {
@@ -654,6 +682,12 @@ function app() {
                     }
                 }
             }, 100); // 延迟100ms确保DOM完全渲染
+        },
+        
+        // 格式化数字（四舍五入，不显示小数）
+        formatNumber(number) {
+            if (!number || isNaN(number)) return 0;
+            return Math.round(number);
         },
         
         // 格式化持续时间
@@ -1102,7 +1136,7 @@ function app() {
             
             this.monthlyStats = {
                 totalDuration,
-                avgDuration: Math.round(avgDuration * 10) / 10,
+                avgDuration: Math.round(avgDuration),
                 maxDuration
             };
         }

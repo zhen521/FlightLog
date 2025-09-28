@@ -279,7 +279,7 @@ class Database {
             } else {
               resolve({
                 totalFlights: totalStats.totalFlights,
-                avgDuration: totalStats.avgDuration ? Math.round(totalStats.avgDuration * 10) / 10 : 0,
+                avgDuration: totalStats.avgDuration ? Math.round(totalStats.avgDuration) : 0,
                 totalDuration: totalStats.totalDuration || 0,
                 weekFlights: weekStats.weekFlights,
                 monthFlights: monthStats.monthFlights
